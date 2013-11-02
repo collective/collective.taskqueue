@@ -1,0 +1,24 @@
+<component prefix="collective.taskqueue.datatypes">
+  <sectiontype name="taskqueue-server"
+               datatype=".TaskQueueServerFactory"
+               implements="ZServer.server">
+     <key name="queue" datatype="string" default="default">
+       <description>
+         Queue name for this server. Utility providing ITaskQueue with
+         this name should be registered.
+       </description>
+     </key>
+     <key name="concurrent_limit" datatype="integer" default="1">
+       <description>
+         Maximum concurrent task limit. This should be less than
+         zserver-thread or just 1.
+       </description>
+     </key>
+    <key name="retry_max_count" datatype="integer" default="10">
+      <description>
+         Maximum retry count for ZPublisher. Once the limit has been
+         exceeded, task may be permanently skipped.
+      </description>
+    </key>
+  </sectiontype>
+</component>

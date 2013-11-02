@@ -1,0 +1,11 @@
+<configure xmlns="http://namespaces.zope.org/zope">
+
+  <utility factory=".taskqueue.TaskQueuesVocabulary"
+           name="collective.taskqueue.queues" />
+
+  <utility factory=".taskqueue.LocalVolatileTaskQueue"
+           name="default" />
+
+  <include package=".demo" />
+
+</configure>
