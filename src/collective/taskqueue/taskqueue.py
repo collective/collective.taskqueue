@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from StringIO import StringIO
 import logging
 import urllib
 from Queue import Queue
@@ -140,6 +141,8 @@ def make_task(url=None, method='GET', params=None, headers=None,
         request.stdin.seek(0)
         payload = request.stdin.read()
         request.stdin.seek(0)
+    elif payload is _marker:
+        payload = ''
 
     # Build task dictionary
     task = {

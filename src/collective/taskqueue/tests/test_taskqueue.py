@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import Queue
 import transaction
 import unittest2 as unittest
 from zope.component import getUtility
@@ -10,27 +11,31 @@ from collective.taskqueue.testing import TASK_QUEUE_FUNCTIONAL_TESTING
 from collective.taskqueue import taskqueue
 
 
-class TestLocalVolatileQueue(unittest.TestCase):
+class TestLocalVolatileTaskQueue(unittest.TestCase):
 
     layer = TASK_QUEUE_FUNCTIONAL_TESTING
+    queue = 'default'
 
     @property
     def task_queue(self):
-        return getUtility(ITaskQueue, name="default")
+        return getUtility(ITaskQueue, name=self.queue)
+
+    def setUp(self):
+        self.task_queue.queue = Queue.Queue()
 
     def testEmptyQueue(self):
         self.assertEqual(len(self.task_queue), 0)
 
     def testAddToQueue(self):
-        taskqueue.add("/")
+        taskqueue.add("/", queue=self.queue)
         self.assertEqual(len(self.task_queue), 0)
 
     def testCommitToQueue(self):
-        taskqueue.add("/")
+        taskqueue.add("/", queue=self.queue)
         self.assertEqual(len(self.task_queue), 0)
         transaction.commit()
         self.assertEqual(len(self.task_queue), 1)
-        taskqueue.add("/Plone")
+        taskqueue.add("/Plone", queue=self.queue)
         self.assertEqual(len(self.task_queue), 1)
         transaction.commit()
         self.assertEqual(len(self.task_queue), 2)
@@ -40,8 +45,8 @@ class TestLocalVolatileQueue(unittest.TestCase):
 
     def testConsumeFromQueue(self):
         self.assertEqual(len(self.task_queue), 0)
-        taskqueue.add("/")
-        taskqueue.add("/Plone")
+        taskqueue.add("/", queue=self.queue)
+        taskqueue.add("/Plone", queue=self.queue)
         transaction.commit()
         self.assertEqual(len(self.task_queue), 2)
 
