@@ -25,11 +25,10 @@ setup(
         'setuptools',
         'Zope2',
         'five.globalrequest',
-        'msgpack-python',
     ],
     extras_require={
         'test': ['plone.app.testing'],
-        'redis': ['redis']
+        'redis': ['redis', 'msgpack-python']
     },
     entry_points='''
     # -*- Entry points: -*-

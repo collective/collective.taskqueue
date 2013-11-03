@@ -17,13 +17,11 @@ from zope.component import getUtility
 from zope.component import ComponentLookupError
 from zope.interface import implements
 
+from collective.taskqueue.config import TASK_QUEUE_SERVER_IDENT
 from collective.taskqueue.interfaces import ITaskQueueLayer
 from collective.taskqueue.interfaces import ITaskQueue
 
 logger = logging.getLogger('collective.taskqueue')
-
-TASK_QUEUE_SERVER_NAME = 'TaskQueue Server'
-TASK_QUEUE_SERVER_IDENT = 'TaskQueue'
 
 
 class TaskQueueServer(asyncore.dispatcher):
@@ -31,7 +29,7 @@ class TaskQueueServer(asyncore.dispatcher):
     # required by ZServer
     SERVER_IDENT = TASK_QUEUE_SERVER_IDENT
 
-    def __init__(self, queue='default', concurrent_limit=1,
+    def __init__(self, name='default', queue='default', concurrent_limit=1,
                  retry_max_count=10, handler=None, access_logger=None):
         # Use given handler instead of ZPublisher.PubCore.handle
         # to support integration tests
@@ -44,6 +42,7 @@ class TaskQueueServer(asyncore.dispatcher):
         self.tasks = []
 
         # Init settings
+        self.name = name
         self.queue = queue
         self.concurrent_limit = concurrent_limit
         self.retry_max_count = retry_max_count
@@ -60,9 +59,11 @@ class TaskQueueServer(asyncore.dispatcher):
         return task_queue
 
     def readable(self):
-        queue = self.get_task_queue()
-        if len(queue) > 0 and len(self.tasks) < self.concurrent_limit:
-            self.dispatch(queue.get())
+        task_queue = self.get_task_queue()
+        if len(self.tasks) < self.concurrent_limit:
+            task = task_queue.get(consumer_name=self.name)
+            if task is not None:
+                self.dispatch(task)
         return False
 
     def dispatch(self, task):
@@ -88,11 +89,11 @@ def make_request_and_response(server, task):
     if task['payload'] is not None:
         payload.write(task['payload'])
         payload.seek(0)
-    task['headers'].append('User-Agent: {0:s}'.format(TASK_QUEUE_SERVER_IDENT))
+    additional_headers = ['User-Agent: {0:s}'.format(TASK_QUEUE_SERVER_IDENT)]
     req = '{0:s} {1:s} HTTP/{2:s}'.format(task['method'], task['url'], '1.1')
     req = http_request(TaskChannel(server, task), req,
                        task['method'], task['url'], '1.1',
-                       task['headers'])
+                       task['headers'] + additional_headers)
     env = make_env(req, task['method'])
     resp = make_response(req, env)
     task_request = TaskRequest(payload, env, resp)
@@ -116,7 +117,7 @@ def make_env(req, method='GET'):
                REMOTE_ADDR='0',
                REQUEST_METHOD=method,
                SCRIPT_NAME='',
-               SERVER_NAME=TASK_QUEUE_SERVER_NAME,
+               SERVER_NAME=TASK_QUEUE_SERVER_IDENT,
                SERVER_PORT=TASK_QUEUE_SERVER_IDENT,
                SERVER_PROTOCOL='HTTP/1.1',
                SERVER_SOFTWARE='Zope',
@@ -146,6 +147,7 @@ class TaskRequest(HTTPRequest):
 
 class TaskChannel(object):
     """Medusa channel for TaskQueue server"""
+
     addr = ['127.0.0.1']
     closed = 0
 
@@ -155,25 +157,34 @@ class TaskChannel(object):
         self.output = ''
 
     def push(self, producer, *args):
+        # Collect task output
         if type(producer) == str:
             self.output += producer
         else:
             self.output += producer.more()
 
     def done(self):
+        # Clear done task from server
+        self.server.tasks.remove(self.task)
+
+        # Read status line from output
         status_line = self.output.split('\r\n').pop(0)
 
-        # HTTP 3xx
+        # Acknowledge done task for queue
+        task_queue = self.server.get_task_queue()
+        task_queue.task_done(self.task,
+                             status_line=staticmethod,
+                             consumer_name=self.server.name,
+                             consumer_length=len(self.server.tasks))
+
+        # Log warning when HTTP 3xx
         if status_line.startswith('HTTP/1.1 3'):
             pos = self.output.find('Location: ')
             location = self.output[max(0, pos):].split('\r\n').pop(0)
             logger.warning('{0:s} ({1:s} --> {2:s} [not followed])'.format(
                 status_line, self.task['url'], location[10:]))
 
-        # Not HTTP 2xx
+        # Log error when not HTTP 2xx
         elif not status_line.startswith('HTTP/1.1 2'):
             logger.error('{0:s} ({1:s})'.format(
                 status_line, self.task['url']))
-
-        self.server.tasks.remove(self.task)
-        self.server.get_task_queue().task_done()

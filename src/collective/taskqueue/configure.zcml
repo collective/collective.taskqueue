@@ -1,10 +1,15 @@
-<configure xmlns="http://namespaces.zope.org/zope">
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:zcml="http://namespaces.zope.org/zcml">
 
   <utility factory=".taskqueue.TaskQueuesVocabulary"
            name="collective.taskqueue.queues" />
 
   <utility factory=".taskqueue.LocalVolatileTaskQueue"
            name="default" />
+
+  <utility factory=".redisqueue.RedisTaskQueue"
+           name="redis"
+           zcml:condition="installed redis"/>
 
   <include package=".demo" />
 

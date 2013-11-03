@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
 import urllib
-from Queue import LifoQueue, Empty
+from Queue import Queue
+from Queue import Empty
+import uuid
 from App.config import getConfiguration
 
-import msgpack
 from plone.memoize import forever
 from transaction import get as get_transaction
 from transaction.interfaces import IDataManager
@@ -61,6 +62,8 @@ class TaskQueueTransactionDataManager(object):
 
 class TaskQueueBase(object):
 
+    transaction_data_manager = TaskQueueTransactionDataManager
+
     @property
     @forever.memoize
     def name(self):
@@ -71,32 +74,32 @@ class TaskQueueBase(object):
                 return term.token
         return None
 
+    def add(self, url=None, method='GET', params=None, headers=None,
+            payload=_marker):
+        task = make_task(url, method, params, headers, payload)
+        get_transaction().join(self.transaction_data_manager(self, task))
+
 
 class LocalVolatileTaskQueue(TaskQueueBase):
 
     implements(ITaskQueue)
 
     def __init__(self):
-        self.queue = LifoQueue()
+        self.queue = Queue()
 
     def __len__(self):
         return self.queue.qsize()
 
-    def add(self, url=None, method='GET', params=None, headers=None,
-            payload=_marker):
-        task = make_task(url, method, params, headers, payload)
-        get_transaction().join(TaskQueueTransactionDataManager(self, task))
-
     def put(self, task):
         self.queue.put(task, block=True)
 
-    def get(self, default=None):
+    def get(self, *args, **kwargs):
         try:
-            return msgpack.loads(self.queue.get(block=False))
+            return self.queue.get(block=False)
         except Empty:
-            return default
+            return None
 
-    def task_done(self):
+    def task_done(self, *args, **kwargs):
         self.queue.task_done()
 
 
@@ -138,14 +141,15 @@ def make_task(url=None, method='GET', params=None, headers=None,
         payload = request.stdin.read()
         request.stdin.seek(0)
 
-    # Serialize
-    task = msgpack.dumps({
-        'url': url,
-        'method': method,
+    # Build task dictionary
+    task = {
+        'uuid': str(uuid.uuid4()),  # Ensure that each task is unique.
+        'url': url,  # Physical /Plone/to/callable with optional querystring
+        'method': method,  # GET or POST
         'headers': ['{0:s}: {1:s}'.format(key, value)
-                    for key, value in headers.items()],
+                    for key, value in sorted(headers.items())],
         'payload': payload
-    })
+    }
 
     return task
 
