@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import unittest
 from zope import schema
 from zope.interface import Interface
 from z3c.form import form, field, button
@@ -24,3 +25,9 @@ class TaskQueueForm(form.Form):
             return False
         for i in range(1):
             taskqueue.add(data.get('url'))
+
+
+class Placeholder(unittest.TestCase):
+
+    def testNothingYet(self):
+        pass
