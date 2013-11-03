@@ -8,8 +8,8 @@ Yet another way to dispatch and execute asynchronous tasks in Plone.
 
 **This is an experiment. Not battle tested.**
 
-*collective.taskqueue* provides asynchronous tasks by providing small
-a framework for queueing asynchronously processed requests for ZPublisher.
+*collective.taskqueue* enables asynchronous tasks in Plone by providing a
+small framework for queueing asynchronously processed requests for ZPublisher.
 While this cannot be the most performance wise way to implement asynchronous
 tasks for Plone, it's easy to use, because asynchronous tasks are just normal
 calls to normally registered browser views (or other traversable callables).
@@ -23,7 +23,7 @@ Minimal configuration:
        <taskqueue-server>
        </taskqueue-server>
 
-Minimal Redis configuration:
+Example Redis configuration:
 
 .. code:: ini
 
@@ -37,7 +37,6 @@ Minimal Redis configuration:
          redis_unix_socket_path ${buildout:directory}/var/redis.sock
        </product-config>
        <taskqueue-server>
+         name ${:_buildout_section_name_}
          queue redis
        </taskqueue-server>
-
-
