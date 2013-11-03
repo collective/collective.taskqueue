@@ -14,6 +14,9 @@ Minimal Redis configuration:
 
 .. code:: ini
 
+   eggs =
+       collective.taskqueue[redis]
+
    zope-conf-additional =
        %import collective.taskqueue
        <product-config collective.taskqueue>
