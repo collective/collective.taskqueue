@@ -1,6 +1,9 @@
 collective.taskqueue
 ====================
 
+.. image:: https://secure.travis-ci.org/datakurre/collective.taskqueue.png
+   :target: http://travis-ci.org/datakurre/collective.taskqueue
+
 Yet another way to dispatch and execute asynchronous tasks in Plone.
 
 **This is an experiment. Not battle tested.**
