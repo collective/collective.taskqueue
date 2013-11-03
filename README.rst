@@ -31,7 +31,7 @@ Minimal Redis configuration:
        %import collective.taskqueue
        <product-config collective.taskqueue>
          queue redis
-         redis_unixsocket ${buildout:directory}/var/redis.sock
+         redis_unix_socket_path ${buildout:directory}/var/redis.sock
        </product-config>
        <taskqueue-server>
          queue redis

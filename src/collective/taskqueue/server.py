@@ -36,7 +36,13 @@ class TaskQueueServer(asyncore.dispatcher):
         self.handler = handler or handle
 
         # Set access logger
-        self.logger = LogHelper(access_logger)
+        if access_logger:
+            self.logger = LogHelper(access_logger)
+        else:
+            class DummyLogger(object):
+                def log(self, *args):
+                    pass
+            self.logger = DummyLogger()
 
         # Init current task list
         self.tasks = []
@@ -68,8 +74,8 @@ class TaskQueueServer(asyncore.dispatcher):
 
     def dispatch(self, task):
         req, zreq, resp = make_request_and_response(self, task)
-        self.handler('Zope2', zreq, resp)
         self.tasks.append(task)
+        self.handler('Zope2', zreq, resp)
 
     def handle_read(self):
         return True
@@ -117,8 +123,8 @@ def make_env(req, method='GET'):
                REMOTE_ADDR='0',
                REQUEST_METHOD=method,
                SCRIPT_NAME='',
-               SERVER_NAME=TASK_QUEUE_SERVER_IDENT,
-               SERVER_PORT=TASK_QUEUE_SERVER_IDENT,
+               SERVER_NAME='nohost',
+               SERVER_PORT=None,
                SERVER_PROTOCOL='HTTP/1.1',
                SERVER_SOFTWARE='Zope',
                HTTP_USER_AGENT=TASK_QUEUE_SERVER_IDENT)

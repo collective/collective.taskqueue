@@ -14,8 +14,7 @@ from collective.taskqueue.taskqueue import get_setting
 class RedisTaskQueueTDM(TaskQueueTransactionDataManager):
 
     def tpc_vote(self, t):
-        # Vote 'no' by raising ConnectionError when Redis is down to abort
-        # the transaction with queued tasks.
+        # Vote 'no' by raising ConnectionError if Redis is down:
         self.queue.redis.ping()
 
 
@@ -26,18 +25,21 @@ class RedisTaskQueue(TaskQueueBase):
     transaction_data_manager = RedisTaskQueueTDM
 
     def __init__(self):
-        unixsocket = get_setting('redis_unixsocket', None)
-        assert unixsocket, """\
-Redis configuration not found. Do you have
-
-<product-config collective.taskqueue>
-    redis_unixsocket /path/to/redis.sock
-</product-config>
-
-in your zope.conf?
-"""
-        self.redis = redis.StrictRedis(unix_socket_path=unixsocket)
+        self.redis = redis.StrictRedis(**self.redis_config)
         self._requeued_processing = False  # Requeue old processing on start
+
+    @property
+    @forever.memoize
+    def redis_config(self):
+        return dict([item for item in {
+            'host': get_setting('redis_host', None),
+            'port': get_setting('redis_port', None),
+            'db': get_setting('redis_db', None),
+            'password': get_setting('redis_password', None),
+            'socket_timeout': get_setting('redis_socket_timeout', None),
+            'errors': get_setting('redis_errors', None),
+            'unix_socket_path': get_setting('redis_unix_socket_path', None),
+        }.items() if item[1] is not None])
 
     @property
     @forever.memoize

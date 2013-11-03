@@ -135,8 +135,8 @@ def make_task(url=None, method='GET', params=None, headers=None,
             key = '-'.join(map(str.capitalize, key.split('_')))
             headers[key] = value
 
-    # Copy payload when not explicitly given:
-    if payload is _marker:
+    # Copy payload from re-seekable StringIO when not explicitly given:
+    if payload is _marker and type(request.stdin) is not file:
         request.stdin.seek(0)
         payload = request.stdin.read()
         request.stdin.seek(0)
@@ -155,7 +155,7 @@ def make_task(url=None, method='GET', params=None, headers=None,
 
 
 def get_setting(name, default=None):
-    product_config = getattr(getConfiguration(), 'product_config', None)
+    product_config = getattr(getConfiguration(), 'product_config', {})
     settings = product_config.get('collective.taskqueue', {})
     return settings.get(name, default)
 
