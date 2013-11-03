@@ -2,9 +2,9 @@
            xmlns:browser="http://namespaces.zope.org/browser">
 
     <browser:page
-        name="taskqueue-add"
+        name="queue-task-form"
         for="*"
-        class=".demo.TaskQueueForm"
+        class=".test_acceptance.TaskQueueForm"
         permission="zope2.View"
         />
 

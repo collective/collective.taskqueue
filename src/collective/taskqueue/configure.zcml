@@ -11,6 +11,4 @@
            name="redis"
            zcml:condition="installed redis"/>
 
-  <include package=".demo" />
-
 </configure>
