@@ -6,13 +6,15 @@ collective.taskqueue
 
 Yet another way to dispatch and execute asynchronous tasks in Plone.
 
-**This is an experiment. Not battle tested.**
+**This is an experiment. Not yet battle tested.**
 
-*collective.taskqueue* enables asynchronous tasks in Plone by providing a
-small framework for queueing asynchronously processed requests for ZPublisher.
-While this cannot be the most performance wise way to implement asynchronous
-tasks for Plone, it's easy to use, because asynchronous tasks are just normal
-calls to normally registered browser views (or other traversable callables).
+*collective.taskqueue* enables asynchronous tasks in Plone add-ons by
+providing a small framework for asynchronously queueing requests for
+ZPublisher. Even this design does not the best performance for your
+asynchronous Plone tasks, it should be quite easy to use: asynchronous tasks
+are just normal calls to normally registered browser views (or other
+traversable callables) and they authenticated using PAS as all the other
+requests.
 
 Minimal configuration:
 
@@ -40,3 +42,16 @@ Example Redis configuration:
          name ${:_buildout_section_name_}
          queue redis
        </taskqueue-server>
+
+Usage:
+
+.. code:: python
+
+   from collective.taskqueue import taskqueue
+   taskqueue.add('/Plone/path/to/my/view')
+
+By default, ``taskqueue.add`` copies headers from the current requests to the
+asynchronous request. That should be enough to authenticate the requests as the
+same way as the current request was authenticated. Alternative authentication
+can be implemented with a custom PAS-plugin and passing custom
+headers-dictionary (like ``headers={...}`` for ``taskqueue.add``).
