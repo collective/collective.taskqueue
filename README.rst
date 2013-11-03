@@ -50,6 +50,8 @@ Usage:
    from collective.taskqueue import taskqueue
    taskqueue.add('/Plone/path/to/my/view')
 
+Tasks are queued (and consumed) after a successful transaction.
+
 By default, ``taskqueue.add`` copies headers from the current requests to the
 asynchronous request. That should be enough to authenticate the requests as the
 same way as the current request was authenticated. Alternative authentication
