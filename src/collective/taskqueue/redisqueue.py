@@ -31,7 +31,7 @@ class RedisTaskQueue(TaskQueueBase):
     @property
     @forever.memoize
     def redis_config(self):
-        return dict([item for item in {
+        settings = dict([item for item in {
             'host': get_setting('redis_host', None),
             'port': get_setting('redis_port', None),
             'db': get_setting('redis_db', None),
@@ -40,6 +40,9 @@ class RedisTaskQueue(TaskQueueBase):
             'errors': get_setting('redis_errors', None),
             'unix_socket_path': get_setting('redis_unix_socket_path', None),
         }.items() if item[1] is not None])
+        if 'port' in settings:
+            settings['port'] = int(settings['port'])
+        return settings
 
     @property
     @forever.memoize
