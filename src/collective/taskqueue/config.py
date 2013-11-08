@@ -10,7 +10,7 @@ else:
     HAS_REDIS = True
 
 try:
-    pkg_resources.get_distribution('msgpack')
+    pkg_resources.get_distribution('msgpack-python')
 except pkg_resources.DistributionNotFound:
     HAS_MSGPACK = False
 else:
