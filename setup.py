@@ -28,7 +28,7 @@ setup(
     ],
     extras_require={
         'test': ['plone.app.testing'],
-        'redis': ['redis', 'msgpack-python']
+        'redis': ['redis>=2.4.10', 'msgpack-python']
     },
     entry_points='''
     # -*- Entry points: -*-
