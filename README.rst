@@ -10,8 +10,8 @@ Yet another way to dispatch and execute asynchronous tasks in Plone.
 
 *collective.taskqueue* enables asynchronous tasks in Plone add-ons by
 providing a small framework for asynchronously queueing requests for
-ZPublisher. Even this design does not the best performance for your
-asynchronous Plone tasks, it should be quite easy to use: asynchronous tasks
+ZPublisher. Even this design may not provide the best performance for your
+asynchronous Plone tasks, it should be the easiest to use: asynchronous tasks
 are just normal calls to normally registered browser views (or other
 traversable callables) and they authenticated using PAS as all the other
 requests.
@@ -30,7 +30,7 @@ Example Redis configuration:
 .. code:: ini
 
    eggs =
-       collective.taskqueue[redis]
+       collective.taskqueue [redis]
 
    zope-conf-additional =
        %import collective.taskqueue
