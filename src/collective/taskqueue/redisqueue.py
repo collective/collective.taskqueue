@@ -26,6 +26,7 @@ class RedisTaskQueue(TaskQueueBase):
 
     def __init__(self):
         self.redis = redis.StrictRedis(**self.redis_config)
+        self.redis.ping()  # Ensure Zope startup to crash when Redis down
         self._requeued_processing = False  # Requeue old processing on start
 
     @property
