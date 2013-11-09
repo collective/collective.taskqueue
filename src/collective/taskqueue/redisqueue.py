@@ -27,6 +27,7 @@ class RedisTaskQueue(TaskQueueBase):
     def __init__(self):
         self.redis = redis.StrictRedis(**self.redis_config)
         self.redis.ping()  # Ensure Zope startup to crash when Redis down
+        self.pubsub = self.redis.pubsub()  # Create pubsub for notifications
         self._requeued_processing = False  # Requeue old processing on start
 
     @property
@@ -67,6 +68,7 @@ class RedisTaskQueue(TaskQueueBase):
 
     def put(self, task):
         self.redis.lpush(self.redis_key, self.serialize(task))
+        self.redis.publish(self.redis_key, 'lpush')  # Send event
 
     def get(self, consumer_name):
         consumer_key = '{0:s}.{1:s}'.format(self.redis_key, consumer_name)
@@ -92,6 +94,7 @@ class RedisTaskQueue(TaskQueueBase):
         try:
             while self.redis.llen(consumer_key) > 0:
                 self.redis.rpoplpush(consumer_key, self.redis_key)
+            self.redis.publish(self.redis_key, 'rpoplpush')  # Send event
             self._requeued_processing = True
         except redis.ConnectionError:
             pass
