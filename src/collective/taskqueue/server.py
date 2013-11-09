@@ -18,6 +18,7 @@ from zope.component import ComponentLookupError
 from zope.interface import implements
 
 from collective.taskqueue.config import TASK_QUEUE_SERVER_IDENT
+from collective.taskqueue.config import HAS_REDIS
 from collective.taskqueue.interfaces import ITaskQueueLayer
 from collective.taskqueue.interfaces import ITaskQueue
 
@@ -55,7 +56,20 @@ class TaskQueueServer(asyncore.dispatcher):
 
         # Init asyncore.dispatcher
         asyncore.dispatcher.__init__(self)
+        self._readable = True
+        self._readability_confirmed = False
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+
+
+    def _set_redis_socket(self, task_queue):
+        # Close the current dummy socket
+        self.del_channel()
+        self.socket.close()
+
+        # Subscribe to queue events and replace mock socket with Redis sock
+        task_queue.pubsub.subscribe(task_queue.redis_key)
+        task_queue.pubsub.connection._sock.setblocking(0)
+        self.set_socket(task_queue.pubsub.connection._sock)
 
     def get_task_queue(self):
         try:
@@ -66,11 +80,21 @@ class TaskQueueServer(asyncore.dispatcher):
 
     def readable(self):
         task_queue = self.get_task_queue()
+
+        # Set event asyncore socket map to poll Redis events
+        if not self._readability_confirmed and HAS_REDIS:
+            from collective.taskqueue.redisqueue import RedisTaskQueue
+            if issubclass(task_queue.__class__, RedisTaskQueue):
+                self._set_redis_socket(task_queue)
+            self._readability_confirmed = True
+
+        # Poll task queue
         if len(self.tasks) < self.concurrent_limit:
             task = task_queue.get(consumer_name=self.name)
             if task is not None:
                 self.dispatch(task)
-        return False
+
+        return self._readable
 
     def dispatch(self, task):
         req, zreq, resp = make_request_and_response(self, task)
@@ -78,7 +102,12 @@ class TaskQueueServer(asyncore.dispatcher):
         self.handler('Zope2', zreq, resp)
 
     def handle_read(self):
-        return True
+        if self._readable:
+            try:
+                self.recv(4096)
+            except socket.error:
+                pass
+        return False
 
     def writable(self):
         return False
