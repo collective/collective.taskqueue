@@ -102,7 +102,7 @@ class TaskQueueServer(asyncore.dispatcher):
         self.handler('Zope2', zreq, resp)
 
     def handle_read(self):
-        if self._readable:
+        if self._readable and len(self.get_task_queue()) < 1:
             try:
                 self.recv(4096)
             except socket.error:
