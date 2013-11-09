@@ -56,10 +56,9 @@ class TaskQueueServer(asyncore.dispatcher):
 
         # Init asyncore.dispatcher
         asyncore.dispatcher.__init__(self)
-        self._readable = True
+        self._readable = False
         self._readability_confirmed = False
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-
 
     def _set_redis_socket(self, task_queue):
         # Close the current dummy socket
@@ -70,6 +69,7 @@ class TaskQueueServer(asyncore.dispatcher):
         task_queue.pubsub.subscribe(task_queue.redis_key)
         task_queue.pubsub.connection._sock.setblocking(0)
         self.set_socket(task_queue.pubsub.connection._sock)
+        self._readable = True
 
     def get_task_queue(self):
         try:
