@@ -1,11 +1,18 @@
 Changelog
 =========
 
-0.1.1 (unreleased)
+0.2.0 (2013-11-09)
 ------------------
 
-- Nothing changed yet.
-
+- Enhance Redis-integration to connect redis notification pubsub-socket
+  directly to asyncore on instant message handling
+  [Asko Soukka]
+- Fix to require redis >= 2.4.10 [fixes #2]
+  [Asko Soukka]
+- Fix to not start with clear error when clearly intending to use
+  RedisTaskQueues without redis-dependencies. Also crash when cannot connect to
+  Redis. [fixes #1]
+  [Asko Soukka]
 
 0.1.0 (2013-11-03)
 ------------------
