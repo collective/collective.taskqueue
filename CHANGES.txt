@@ -1,11 +1,11 @@
 Changelog
 =========
 
-0.2.1 (unreleased)
+0.2.1 (2013-11-09)
 ------------------
 
-- Nothing changed yet.
-
+- Fix taskqueue socket to be not readable by default
+  [Asko Soukka]
 
 0.2.0 (2013-11-09)
 ------------------
