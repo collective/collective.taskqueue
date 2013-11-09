@@ -11,4 +11,6 @@
            name="redis"
            zcml:condition="installed redis"/>
 
+  <!--<include package=".tests" file="test_acceptance.zcml" />-->
+
 </configure>
