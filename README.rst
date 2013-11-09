@@ -100,7 +100,7 @@ Supported Redis-connection options are:
 - *redis_errors*
 - *redis_unix_socket_path* (alternative to *redis_host with redis_port*)
 
-Custom queues can be declared by registering a custom utilities:
+Custom queues can be declared by registering custom utilities:
 
 .. code:: xml
 
