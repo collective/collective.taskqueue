@@ -1,0 +1,28 @@
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:five="http://namespaces.zope.org/five"
+           xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+           xmlns:i18n="http://namespaces.zope.org/i18n"
+           i18n_domain="collective.taskqueue">
+
+  <five:registerPackage package="." initialize=".initialize" />
+
+  <genericsetup:importStep
+      name="taskauth"
+      title="Task Queue PAS plugin task authentication"
+      description="Installs Task Queue PAS plugin to allow
+                   authenticating tasks as their creators."
+      handler=".configureTaskQueueAuthPlugin"
+      i18n:attributes="title description"
+      />
+
+  <genericsetup:registerProfile
+      name="default"
+      title="Task Queue PAS plugin"
+      directory="profiles/default"
+      description="Installs Task Queue PAS plugin"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      i18n:attributes="title description"
+      />
+
+</configure>

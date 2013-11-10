@@ -11,6 +11,9 @@
            name="redis"
            zcml:condition="installed redis"/>
 
+  <include package=".pasplugin"
+           zcml:condition="installed Products.CMFPlone"/>
+
   <!--<include package=".tests" file="test_acceptance.zcml" />-->
 
 </configure>

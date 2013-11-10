@@ -5,6 +5,7 @@ import urllib
 from Queue import Queue
 from Queue import Empty
 import uuid
+from AccessControl import getSecurityManager
 from App.config import getConfiguration
 
 from plone.memoize import forever
@@ -143,6 +144,11 @@ def make_task(url=None, method='GET', params=None, headers=None,
         request.stdin.seek(0)
     elif payload is _marker:
         payload = ''
+
+    # Set special X-Task-User-Id -header for Task Queue PAS plugin
+    task_user_id = getSecurityManager().getUser().getId()
+    if bool(task_user_id):
+        headers['X-Task-User-Id'] = task_user_id
 
     # Build task dictionary
     task = {

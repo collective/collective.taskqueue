@@ -30,4 +30,3 @@ class ITaskQueueLayer(Interface):
     """Marker interface for task queue server dispatched requests; Can be used
     to configure views only visible for queued tasks.
     """
-
