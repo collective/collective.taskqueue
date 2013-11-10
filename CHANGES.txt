@@ -1,11 +1,16 @@
 Changelog
 =========
 
-0.2.3 (unreleased)
+0.3.0 (2013-11-10)
 ------------------
 
-- Nothing changed yet.
-
+- Fix TaskQueueServer to re-connect to Redis after Redis restart
+  [Asko Soukka]
+- Fix to ping Redis on Zope start only in development mode
+  [Asko Soukka]
+- Add optional Task Queue PAS plugin to independently authenticate
+  queued tasks as their creator
+  [Asko Soukka]
 
 0.2.2 (2013-11-09)
 ------------------
