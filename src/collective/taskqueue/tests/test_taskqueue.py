@@ -53,4 +53,5 @@ class TestLocalVolatileTaskQueue(unittest.TestCase):
         handler = InstalledHandler("collective.taskqueue")
         runAsyncTest(self._testConsumeFromQueue)
         messages = [record.getMessage() for record in handler.records]
-        self.assertEqual(messages, ["http://nohost/", "http://nohost/Plone"])
+        self.assertEqual(messages[-2:],
+                         ["http://nohost/", "http://nohost/Plone"])
