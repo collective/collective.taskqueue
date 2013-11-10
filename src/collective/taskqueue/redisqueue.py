@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from App.config import getConfiguration
 import msgpack
 
 from plone.memoize import forever
@@ -26,9 +27,11 @@ class RedisTaskQueue(TaskQueueBase):
 
     def __init__(self):
         self.redis = redis.StrictRedis(**self.redis_config)
-        self.redis.ping()  # Ensure Zope startup to crash when Redis down
         self.pubsub = self.redis.pubsub()  # Create pubsub for notifications
         self._requeued_processing = False  # Requeue old processing on start
+
+        #if getattr(getConfiguration(), 'debug_mode', False):
+        #    self.redis.ping()  # Ensure Zope startup to crash when Redis down
 
     @property
     @forever.memoize
