@@ -6,6 +6,8 @@
 
   <five:registerPackage package="." initialize=".initialize" />
 
+  <include package="Products.GenericSetup" file="meta.zcml" />
+
   <genericsetup:importStep
       name="taskauth"
       title="Task Queue PAS plugin task authentication"
