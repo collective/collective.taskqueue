@@ -1,11 +1,11 @@
 Changelog
 =========
 
-0.3.1 (unreleased)
+0.3.1 (2013-11-13)
 ------------------
 
-- Nothing changed yet.
-
+- Enhance acceptance testing support with the first acceptance tests
+  [Asko Soukka]
 
 0.3.0 (2013-11-10)
 ------------------
