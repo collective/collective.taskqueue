@@ -5,7 +5,7 @@
         name="queue-task-form"
         for="*"
         class=".test_acceptance.TaskQueueForm"
-        permission="zope2.View"
+        permission="cmf.ManagePortal"
         />
 
 </configure>

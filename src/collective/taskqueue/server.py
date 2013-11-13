@@ -102,7 +102,8 @@ class TaskQueueServer(asyncore.dispatcher):
                 self._set_redis_socket(task_queue)
 
         # Poll task queue
-        if len(self.tasks) < self.concurrent_limit:
+        if (self.concurrent_limit == 0
+                or len(self.tasks) < self.concurrent_limit):
             task = task_queue.get(consumer_name=self.name)
             if task is not None:
                 self.dispatch(task)
@@ -127,7 +128,7 @@ class TaskQueueServer(asyncore.dispatcher):
     def handle_write(self):
         pass
 
-    def handle_close(self):
+    def handle_close(self, force=False):
         if self._readable:
             logger.warning('TaskQueueServer disconnected.')
             # Reset dispatcher into initial dummy state to trigger reconnect
@@ -135,7 +136,8 @@ class TaskQueueServer(asyncore.dispatcher):
             self.socket.close()
             self._readable = False
             self._readability_confirmed = False
-            self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+            if not force:
+                self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         else:
             asyncore.dispatcher.handle_close(self)
 

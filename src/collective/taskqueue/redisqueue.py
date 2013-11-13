@@ -101,3 +101,7 @@ class RedisTaskQueue(TaskQueueBase):
             self._requeued_processing = True
         except redis.ConnectionError:
             pass
+
+    def reset(self):
+        for key in self.redis.keys(self.redis_key + '*'):
+            self.redis.ltrim(key, 1, 0)

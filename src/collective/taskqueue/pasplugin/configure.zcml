@@ -9,7 +9,7 @@
   <include package="Products.GenericSetup" file="meta.zcml" />
 
   <genericsetup:importStep
-      name="taskauth"
+      name="taskqueue-pasplugin"
       title="Task Queue PAS plugin task authentication"
       description="Installs Task Queue PAS plugin to allow
                    authenticating tasks as their creators."

@@ -104,6 +104,9 @@ class LocalVolatileTaskQueue(TaskQueueBase):
     def task_done(self, *args, **kwargs):
         self.queue.task_done()
 
+    def reset(self):
+        self.queue = Queue()
+
 
 class TaskQueuesVocabulary(object):
 
@@ -181,3 +184,16 @@ def add(url=None, method='GET', params=None, headers=None, payload=_marker,
                        queue)
         task_queue = getUtility(ITaskQueue, name='default')
     task_queue.add(url, method, params, headers, payload)
+
+
+def reset(queue=_marker):
+    if queue is _marker:
+        queue = get_setting('queue', 'default')
+    try:
+        task_queue = getUtility(ITaskQueue, name=queue)
+    except ComponentLookupError:
+        logger.warning("TaskQueue '%s' not found. "
+                       "Adding to 'default' queue instead.",
+                       queue)
+        task_queue = getUtility(ITaskQueue, name='default')
+    task_queue.reset()

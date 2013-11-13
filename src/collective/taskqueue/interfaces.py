@@ -25,6 +25,9 @@ class ITaskQueue(Interface):
     def task_done(task, status_line, consumer_name, consumer_length):
         """Acknowledge the task done; Called by task queue server"""
 
+    def reset():
+        """Reset task queue"""
+
 
 class ITaskQueueLayer(Interface):
     """Marker interface for task queue server dispatched requests; Can be used

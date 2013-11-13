@@ -27,7 +27,7 @@ setup(
         'five.globalrequest',
     ],
     extras_require={
-        'test': ['plone.app.testing'],
+        'test': ['plone.app.testing', 'plone.app.robotframework>=0.7.0rc4'],
         'redis': ['redis>=2.4.10', 'msgpack-python']
     },
     entry_points='''
