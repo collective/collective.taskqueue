@@ -61,6 +61,32 @@ Example Redis configuration:
          name ${:_buildout_section_name_}
        </taskqueue-server>
 
+Example Redis configuration with multiple queues:
+
+.. code:: ini
+
+   eggs =
+       collective.taskqueue [redis]
+
+   zope-conf-additional =
+       %import collective.taskqueue
+       <taskqueue>
+         type redis
+         unix_socket_path ${buildout:directory}/var/redis.sock
+       </product-config>
+       <taskqueue-server>
+         name ${:_buildout_section_name_}
+       </taskqueue-server>
+       <taskqueue>
+         type redis
+         queue mailhost
+         unix_socket_path ${buildout:directory}/var/redis.sock
+       </product-config>
+       <taskqueue-server>
+         queue mailhost
+         name ${:_buildout_section_name_}
+       </taskqueue-server>
+
 Redis-support gives you machine-local queues, which can be shared between
 instances. All instances should have `<taskqueue />`, but only the consuming
 instance requires `<taskqueue-server />`.
@@ -154,3 +180,24 @@ Advanced usage
 
 ``queue`` *(optional, default=alphabetically-first-registered-queue)*
   An optional queue name, when more than one queue is registered.
+
+
+How Redis queueing works
+------------------------
+
+1. ``taskqueue.add`` prepares a message, which will be pushed (``lpush``)
+   into key ``collective.taskqueue.%(queue)s`` (where `%(queue)s`` is the
+   name of the queue) at the end of the transaction. If Redis conection is
+   done during the transaction vote, the whole transaction is aborted.
+
+2. ``<taskqueue-server />`` reads the message (``rpoplpush``) from queue so
+   that it will remain in key ``collective.taskqueue.%(queue)s.%(name)s``
+   (where ``%(name)s`` is the name of the ``<taskqueue-server/>``) until
+   the asynchronous processing request has returned a HTTP response.
+
+3. On startup and when all known messages have been processed,
+   ``<taskqueue-server/>`` purges ``collective.taskqueue.%(queue)s.%(name)s``
+   into ``collective.taskqueue.%(queue)s`` (with ``rpoplpush``) and and
+   those tasks are processed again.
+
+Redis integration uses PubSub to notify itself of new messages in queue.
