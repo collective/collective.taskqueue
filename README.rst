@@ -22,8 +22,8 @@ Minimal configuration:
 
    zope-conf-additional =
        %import collective.taskqueue
-       <taskqueue-server>
-       </taskqueue-server>
+       <taskqueue />
+       <taskqueue-server />
 
 Minimal configuration gives you one volatile instance-local queue and
 consumer, but no guarantee on delivery.
@@ -37,13 +37,12 @@ Example Redis configuration:
 
    zope-conf-additional =
        %import collective.taskqueue
-       <product-config collective.taskqueue>
-         queue redis
-         redis_unix_socket_path ${buildout:directory}/var/redis.sock
+       <taskqueue>
+         type redis
+         unix_socket_path ${buildout:directory}/var/redis.sock
        </product-config>
        <taskqueue-server>
          name ${:_buildout_section_name_}
-         queue redis
        </taskqueue-server>
 
 Redis-support gives you machine-local queues, which can be shared between
@@ -90,25 +89,13 @@ Supported  ``<taskqueue-server />``-settings are:
     consumer. Once the limit has been exceeded, the conflicting task may
     be permanently skipped, depending the used queue.
 
-Supported Redis-connection options are:
+Supported Redis-queue options are:
 
-- *redis_host*
-- *redis_port*
-- *redis_db*
-- *redis_password*
-- *redis_socket_timeout*
-- *redis_errors*
-- *redis_unix_socket_path* (alternative to *redis_host with redis_port*)
-
-Custom queues can be declared by registering custom utilities:
-
-.. code:: xml
-
-   <utility factory="collective.taskqueue.taskqueue.LocalVolatileTaskQueue"
-            name="my-instance-local-volatile-queue" />
-
-   <utility factory="collective.taskqueue.redisqueue.RedisTaskQueue"
-            name="my-redis-queue" />
+- *host*
+- *port*
+- *db*
+- *password*
+- *unix_socket_path* (alternative to *host* with *port*)
 
 
 Advanced usage
@@ -137,5 +124,4 @@ Advanced usage
   with *payload=None*.
 
 ``queue`` *(optional, default=configured-default)*
-  An optional queue name, when queueing tasks for non-default queues.
-
+  An optional queue name, when more than one queue is registered.

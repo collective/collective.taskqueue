@@ -4,13 +4,6 @@
   <utility factory=".taskqueue.TaskQueuesVocabulary"
            name="collective.taskqueue.queues" />
 
-  <utility factory=".taskqueue.LocalVolatileTaskQueue"
-           name="default" />
-
-  <utility factory=".redisqueue.RedisTaskQueue"
-           name="redis"
-           zcml:condition="installed redis"/>
-
   <include package=".pasplugin"
            zcml:condition="installed Products.CMFPlone"/>
 

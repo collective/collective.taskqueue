@@ -16,4 +16,5 @@ except pkg_resources.DistributionNotFound:
 else:
     HAS_MSGPACK = True
 
+TASK_QUEUE_IDENT = 'TaskQueue'
 TASK_QUEUE_SERVER_IDENT = 'TaskQueueServer'

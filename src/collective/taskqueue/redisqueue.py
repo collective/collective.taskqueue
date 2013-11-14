@@ -9,7 +9,6 @@ import redis
 from collective.taskqueue.interfaces import ITaskQueue
 from collective.taskqueue.taskqueue import TaskQueueBase
 from collective.taskqueue.taskqueue import TaskQueueTransactionDataManager
-from collective.taskqueue.taskqueue import get_setting
 
 
 class RedisTaskQueueTDM(TaskQueueTransactionDataManager):
@@ -25,29 +24,13 @@ class RedisTaskQueue(TaskQueueBase):
 
     transaction_data_manager = RedisTaskQueueTDM
 
-    def __init__(self):
-        self.redis = redis.StrictRedis(**self.redis_config)
+    def __init__(self, **kwargs):
+        self.redis = redis.StrictRedis(**kwargs)
         self.pubsub = self.redis.pubsub()  # Create pubsub for notifications
         self._requeued_processing = False  # Requeue old processing on start
 
-        #if getattr(getConfiguration(), 'debug_mode', False):
-        #    self.redis.ping()  # Ensure Zope startup to crash when Redis down
-
-    @property
-    @forever.memoize
-    def redis_config(self):
-        settings = dict([item for item in {
-            'host': get_setting('redis_host', None),
-            'port': get_setting('redis_port', None),
-            'db': get_setting('redis_db', None),
-            'password': get_setting('redis_password', None),
-            'socket_timeout': get_setting('redis_socket_timeout', None),
-            'errors': get_setting('redis_errors', None),
-            'unix_socket_path': get_setting('redis_unix_socket_path', None),
-        }.items() if item[1] is not None])
-        if 'port' in settings:
-            settings['port'] = int(settings['port'])
-        return settings
+        if getattr(getConfiguration(), 'debug_mode', False):
+            self.redis.ping()  # Ensure Zope startup to crash when Redis down
 
     @property
     @forever.memoize

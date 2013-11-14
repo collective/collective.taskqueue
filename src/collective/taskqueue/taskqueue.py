@@ -70,7 +70,7 @@ class TaskQueueBase(object):
     @forever.memoize
     def name(self):
         vocabulary =\
-            getUtility(IVocabularyFactory, "collective.taskqueue.queues")()
+            getUtility(IVocabularyFactory, 'collective.taskqueue.queues')()
         for term in vocabulary:
             if term.value == self:
                 return term.token
@@ -86,7 +86,7 @@ class LocalVolatileTaskQueue(TaskQueueBase):
 
     implements(ITaskQueue)
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.queue = Queue()
 
     def __len__(self):
@@ -166,34 +166,41 @@ def make_task(url=None, method='GET', params=None, headers=None,
     return task
 
 
-def get_setting(name, default=None):
-    product_config = getattr(getConfiguration(), 'product_config', {})
-    settings = product_config.get('collective.taskqueue', {})
-    return settings.get(name, default)
-
-
 def add(url=None, method='GET', params=None, headers=None, payload=_marker,
         queue=_marker):
+
+    vocabulary =\
+        getUtility(IVocabularyFactory, "collective.taskqueue.queues")()
+    assert len(vocabulary), u"No task queues defined. Cannot queue task."
+    fallback = sorted(tuple(vocabulary.by_token))[0]
+
     if queue is _marker:
-        queue = get_setting('queue', 'default')
+        queue = fallback
     try:
         task_queue = getUtility(ITaskQueue, name=queue)
     except ComponentLookupError:
         logger.warning("TaskQueue '%s' not found. "
-                       "Adding to 'default' queue instead.",
-                       queue)
-        task_queue = getUtility(ITaskQueue, name='default')
+                       "Adding to '%s' queue instead.",
+                       queue, fallback)
+        task_queue = getUtility(ITaskQueue, name=fallback)
+
     task_queue.add(url, method, params, headers, payload)
 
 
 def reset(queue=_marker):
+
+    vocabulary = \
+        getUtility(IVocabularyFactory, "collective.taskqueue.queues")()
+    assert len(vocabulary), u"No task queues defined. Cannot reset queue."
+    fallback = sorted(tuple(vocabulary.by_token))[0]
+
     if queue is _marker:
-        queue = get_setting('queue', 'default')
+        queue = fallback
     try:
         task_queue = getUtility(ITaskQueue, name=queue)
     except ComponentLookupError:
         logger.warning("TaskQueue '%s' not found. "
-                       "Adding to 'default' queue instead.",
-                       queue)
-        task_queue = getUtility(ITaskQueue, name='default')
+                       "Resetting queue '%s' instead.",
+                       queue, fallback)
+        task_queue = getUtility(ITaskQueue, name=fallback)
     task_queue.reset()

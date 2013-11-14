@@ -45,7 +45,7 @@ ZSERVER_FIXTURE = ZServer()
 class TaskQueueServerLayer(Layer):
     defaultBases = (z2.STARTUP,)
 
-    def __init__(self, queue='default', zserver_enabled=False):
+    def __init__(self, queue='test-queue', zserver_enabled=False):
         super(TaskQueueServerLayer, self).__init__()
         self.queue = queue
         self.zserver_enabled = zserver_enabled
@@ -80,7 +80,7 @@ class TaskQueueServerLayer(Layer):
             self['server'] = TaskQueueServer(queue=self.queue,
                                              handler=zserver_handler,
                                              concurrent_limit=0)
-            # concurrent_limit=0, because of limitatoins in z2.ZServer
+            # concurrent_limit=0, because of limitations in z2.ZServer
 
     def tearDown(self):
         self['server'].handle_close(force=True)
@@ -89,9 +89,16 @@ class TaskQueueServerLayer(Layer):
         taskqueue.reset()
 
 
-TASK_QUEUE_FIXTURE = TaskQueueServerLayer()
-TASK_QUEUE_ZSERVER_FIXTURE = TaskQueueServerLayer(zserver_enabled=True)
+class LocalTaskQueueServerLayer(TaskQueueServerLayer):
 
+    def setUp(self):
+        import collective.taskqueue.tests
+        xmlconfig.file('test_taskqueue.zcml', collective.taskqueue.tests,
+                       context=self['configurationContext'])
+        super(LocalTaskQueueServerLayer, self).setUp()
+
+TASK_QUEUE_FIXTURE = LocalTaskQueueServerLayer()
+TASK_QUEUE_ZSERVER_FIXTURE = LocalTaskQueueServerLayer(zserver_enabled=True)
 
 TASK_QUEUE_INTEGRATION_TESTING = z2.IntegrationTesting(
     bases=(TASK_QUEUE_FIXTURE,),
@@ -102,9 +109,17 @@ TASK_QUEUE_FUNCTIONAL_TESTING = z2.FunctionalTesting(
     name='TaskQueue:Functional')
 
 
-REDIS_TASK_QUEUE_FIXTURE = TaskQueueServerLayer(queue='redis')
-REDIS_TASK_QUEUE_ZSERVER_FIXTURE = TaskQueueServerLayer(queue='redis',
-                                                        zserver_enabled=True)
+class RedisTaskQueueServerLayer(TaskQueueServerLayer):
+
+    def setUp(self):
+        import collective.taskqueue.tests
+        xmlconfig.file('test_redisqueue.zcml', collective.taskqueue.tests,
+                       context=self['configurationContext'])
+        super(RedisTaskQueueServerLayer, self).setUp()
+
+REDIS_TASK_QUEUE_FIXTURE = RedisTaskQueueServerLayer()
+REDIS_TASK_QUEUE_ZSERVER_FIXTURE =\
+    RedisTaskQueueServerLayer(zserver_enabled=True)
 
 REDIS_TASK_QUEUE_INTEGRATION_TESTING = z2.IntegrationTesting(
     bases=(REDIS_TASK_QUEUE_FIXTURE,),

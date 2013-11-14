@@ -1,30 +1,72 @@
 <component prefix="collective.taskqueue.datatypes">
+
+  <sectiontype name="taskqueue"
+               datatype=".TaskQueueFactory"
+               implements="ZServer.server">
+    <key name="queue" datatype="string" default="default">
+      <description>
+       Unique task queue name.
+      </description>
+    </key>
+    <key name="type" datatype="string" default="local">
+      <description>
+      Task queue type ('local' or 'redis') or full class path to
+      a custom type.
+      </description>
+    </key>
+    <key name="host" datatype="string" default="localhost">
+      <description>
+      Redis server hostname.
+      </description>
+    </key>
+    <key name="port" datatype="integer" default="6379">
+      <description>
+      Redis server port.
+      </description>
+    </key>
+    <key name="db" datatype="string" default="0">
+      <description>
+      Redis server database.
+      </description>
+    </key>
+    <key name="password" datatype="string" default="">
+      <description>
+      Redis server password.
+      </description>
+    </key>
+    <key name="unix_socket_path" datatype="string" default="default">
+      <description>
+      Redis server unix socket path (use insetad of *host* and *port*).
+      </description>
+    </key>
+  </sectiontype>
+
   <sectiontype name="taskqueue-server"
                datatype=".TaskQueueServerFactory"
                implements="ZServer.server">
-     <key name="name" datatype="string" default="default">
-       <description>
-         Consumer name, preferably instance name. Consumer name can be
-         used by queues when reserving messages from broker for processing.
-       </description>
-     </key>
-     <key name="queue" datatype="string" default="default">
-       <description>
-         Queue name for this consumer (consuming server). There must exist a
-         registered utility providing ITaskQueue with this name.
-       </description>
-     </key>
-     <key name="concurrent_limit" datatype="integer" default="1">
-       <description>
-         Maximum concurrent task limit for this consumer. The limit should be
-         less than zserver-thread or just 1.
-       </description>
-     </key>
+    <key name="name" datatype="string" default="default">
+      <description>
+        Consumer name, preferably instance name. Consumer name can be
+        used by queues when reserving messages from broker for processing.
+      </description>
+    </key>
+    <key name="queue" datatype="string" default="default">
+      <description>
+        Queue name for this consumer (consuming server). There must exist a
+        registered utility providing ITaskQueue with this name.
+      </description>
+    </key>
+    <key name="concurrent_limit" datatype="integer" default="1">
+      <description>
+        Maximum concurrent task limit for this consumer. The limit should be
+        less than zserver-thread or just 1.
+      </description>
+    </key>
     <key name="retry_max_count" datatype="integer" default="10">
       <description>
-         Maximum ZPublisher retry count for requests dispatched by this
-         consumer. Once the limit has been exceeded, the conflicting task may
-         be permanently skipped, depending the used queue.
+        Maximum ZPublisher retry count for requests dispatched by this
+        consumer. Once the limit has been exceeded, the conflicting task may
+        be permanently skipped, depending the used queue.
       </description>
     </key>
   </sectiontype>
