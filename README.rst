@@ -28,6 +28,22 @@ Minimal configuration:
 Minimal configuration gives you one volatile instance-local queue and
 consumer, but no guarantee on delivery.
 
+Minimal configuration with multiple queues:
+
+.. code:: ini
+
+   zope-conf-additional =
+       %import collective.taskqueue
+       <taskqueue />
+       <taskqueue-server />
+
+       <taskqueue>
+       queue mailhost
+       </taskqueue>
+       <taskqueue-server>
+       queue mailhost
+       </taskqueue-server>
+
 Example Redis configuration:
 
 .. code:: ini
@@ -46,10 +62,12 @@ Example Redis configuration:
        </taskqueue-server>
 
 Redis-support gives you machine-local queues, which can be shared between
-instances. Only the consuming instance requires `<taskqueue-server />`. It's
-recommended to only use local Redis-installations, because remote connections
-can be killed by firewalls (there's no ping or heartbeat to keep the connection
-alive).
+instances. All instances should have `<taskqueue />`, but only the consuming
+instance requires `<taskqueue-server />`.
+
+It's recommended to only use local Redis-installations, because remote
+connections can be killed by firewalls (there's no ping or heartbeat to keep
+the connection alive).
 
 Queue a task:
 
@@ -70,6 +88,25 @@ soon with collective.taskqueue...).
 Advanced configuration
 ----------------------
 
+Supported  ``<taskqueue />``-settings are:
+
+``queue`` *(default=default)*
+    Unique task queue name.
+
+``type`` *(default=local)*
+    Task queue type ('local' or 'redis') or full class path to
+    a custom type.
+
+``unix_socket_path``
+    Redis server unix socket path (use insetad of *host* and *port*).
+
+Other supported Redis-queue options are:
+
+- *host*
+- *port*
+- *db*
+- *password*
+
 Supported  ``<taskqueue-server />``-settings are:
 
 ``name`` *(default=default)*
@@ -88,14 +125,6 @@ Supported  ``<taskqueue-server />``-settings are:
     Maximum ZPublisher retry count for requests dispatched by this
     consumer. Once the limit has been exceeded, the conflicting task may
     be permanently skipped, depending the used queue.
-
-Supported Redis-queue options are:
-
-- *host*
-- *port*
-- *db*
-- *password*
-- *unix_socket_path* (alternative to *host* with *port*)
 
 
 Advanced usage
@@ -123,5 +152,5 @@ Advanced usage
   will be copied by default. Copying the active payload can be prevented
   with *payload=None*.
 
-``queue`` *(optional, default=configured-default)*
+``queue`` *(optional, default=alphabetically-first-registered-queue)*
   An optional queue name, when more than one queue is registered.
