@@ -56,7 +56,7 @@ Example Redis configuration:
        <taskqueue>
          type redis
          unix_socket_path ${buildout:directory}/var/redis.sock
-       </product-config>
+       </taskqueue>
        <taskqueue-server>
          name ${:_buildout_section_name_}
        </taskqueue-server>
