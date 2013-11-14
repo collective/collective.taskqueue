@@ -8,7 +8,7 @@ from collective.taskqueue.tests.test_taskqueue import\
 class TestRedisTaskQueue(TestLocalVolatileTaskQueue):
 
     layer = REDIS_TASK_QUEUE_FUNCTIONAL_TESTING
-    queue = 'redis'
+    queue = 'test-queue'
 
     def setUp(self):
         while len(self.task_queue):

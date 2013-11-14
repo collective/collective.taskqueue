@@ -14,7 +14,7 @@ from collective.taskqueue import taskqueue
 class TestLocalVolatileTaskQueue(unittest.TestCase):
 
     layer = TASK_QUEUE_FUNCTIONAL_TESTING
-    queue = 'default'
+    queue = 'test-queue'
 
     @property
     def task_queue(self):
