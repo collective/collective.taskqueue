@@ -4,17 +4,20 @@ collective.taskqueue
 .. image:: https://secure.travis-ci.org/datakurre/collective.taskqueue.png
    :target: http://travis-ci.org/datakurre/collective.taskqueue
 
-Yet another way to dispatch and execute asynchronous tasks in Plone.
+Yet another way to queue and execute asynchronous tasks in Plone.
 
 **This is an experiment. Not yet battle tested.**
 
 *collective.taskqueue* enables asynchronous tasks in Plone add-ons by
-providing a small framework for asynchronously queueing requests for
-ZPublisher. Even this design may not provide the best performance for your
-asynchronous Plone tasks, it should be the easiest to use: asynchronous tasks
+providing a small framework for asynchronously queueing requests to
+ZPublisher. With this aproachasynchronous tasks
 are just normal calls to normally registered browser views (or other
 traversable callables) and they authenticated using PAS as all the other
 requests.
+
+In addition, it's possible to configure views so that they are visible only for
+asynchronous requests. Also, *collective.taskqueue* ships with a special
+PAS-plugin, which authenticates each request as the user who queued it.
 
 Minimal configuration:
 
@@ -44,7 +47,7 @@ Minimal configuration with multiple queues:
        queue mailhost
        </taskqueue-server>
 
-Example Redis configuration:
+Preferred minimal configration with Redis:
 
 .. code:: ini
 
@@ -60,6 +63,10 @@ Example Redis configuration:
        <taskqueue-server>
          name ${:_buildout_section_name_}
        </taskqueue-server>
+
+Redis-support gives you distributable queues, which can be shared between
+instances. All instances should have queue-specific `<taskqueue />`, but only
+the consuming instance requires `<taskqueue-server />`.
 
 Example Redis configuration with multiple queues:
 
@@ -87,13 +94,9 @@ Example Redis configuration with multiple queues:
          name ${:_buildout_section_name_}
        </taskqueue-server>
 
-Redis-support gives you machine-local queues, which can be shared between
-instances. All instances should have `<taskqueue />`, but only the consuming
-instance requires `<taskqueue-server />`.
-
 It's recommended to only use local Redis-installations, because remote
 connections can be killed by firewalls (there's no ping or heartbeat to keep
-the connection alive).
+the connection alive thorugh enterprise firewalls).
 
 Queue a task:
 
@@ -104,11 +107,19 @@ Queue a task:
 
 Tasks are queued (and consumed) after a successful transaction.
 
+To make views visible only for asynchronous requests, views can be registered
+for a special layer ``collective.taskqueue.interfaces.ITaskQueueLayer``, which
+is only found from requests dispatched by *collective.taskqueue*.
+
 By default, ``taskqueue.add`` copies headers from the current requests to the
-asynchronous request. That should be enough to authenticate the requests as the
-same way as the current request was authenticated. More robust authentication
-can be implemented with a custom PAS-plugin. (A default one may be shipped
-soon with collective.taskqueue...).
+asynchronous request. That should be enough to authenticate the requests in
+exactly the the same way as the current request was authenticated.
+
+More robust authentication can be implemented with a custom PAS-plugin.
+*collective.taskqueue* ships with an optionally installable PAS-plugin, which
+authenticates each request as the user who queued it. To achieve this,
+*collective.taskqueue* appends ``X-Task-User-Id``-header into the queued
+request.
 
 
 Advanced configuration
@@ -126,31 +137,32 @@ Supported  ``<taskqueue />``-settings are:
 ``unix_socket_path``
     Redis server unix socket path (use insetad of *host* and *port*).
 
-Other supported Redis-queue options are:
-
-- *host*
-- *port*
-- *db*
-- *password*
+Other supported Redis-queue options are: *host*, *port*, *db* and *password*.
 
 Supported  ``<taskqueue-server />``-settings are:
 
 ``name`` *(default=default)*
-    Consumer name, preferably instance name. Consumer name can be
-    used by queues when reserving messages from broker for processing.
+    Consumer name, preferably instance name. Consumer is name used by
+    Redis-queues for reserving messages from queue to achieve quaranteed
+    delivery.
 
 ``queue`` *(default=default)*
-    Queue name for this consumer (consuming server). There must exist a
-    registered utility providing ITaskQueue with this name.
+    Queue name for this consumer (consuming server). There must be a
+    ``<taskqueue/>`` with matching *queue*-value registered.
 
 ``concurrent_limit`` *(default=1)*
-    Maximum concurrent task limit for this consumer. The limit should be
-    less than zserver-thread or just 1.
+    Maximum concurrent task limit for this consumer. It's recommend to
+    set this smaller than *zserver-thread*-count. Leaving this to the
+    default (``1``) should give the best results in terms of minimal
+    ConflictErrors.
 
 ``retry_max_count`` *(default=10)*
     Maximum ZPublisher retry count for requests dispatched by this
-    consumer. Once the limit has been exceeded, the conflicting task may
-    be permanently skipped, depending the used queue.
+    consumer.
+
+    .. note:: Once this limit has been exceeded by ZPublisher, the conflicting
+       task is permanently trashed. (An alternative behavior is possible
+       by implementing a custom queue class.)
 
 
 Advanced usage
@@ -187,17 +199,19 @@ How Redis queueing works
 
 1. ``taskqueue.add`` prepares a message, which will be pushed (``lpush``)
    into key ``collective.taskqueue.%(queue)s`` (where `%(queue)s`` is the
-   name of the queue) at the end of the transaction. If Redis conection is
-   done during the transaction vote, the whole transaction is aborted.
+   name of the queue) at the end of the transaction. If Redis connection is
+   down during the transaction vote, the whole transaction is aborted.
 
-2. ``<taskqueue-server />`` reads the message (``rpoplpush``) from queue so
-   that it will remain in key ``collective.taskqueue.%(queue)s.%(name)s``
+2. ``<taskqueue-server />`` reads each message (``rpoplpush``) from queue so
+   that they will remain in key ``collective.taskqueue.%(queue)s.%(name)s``
    (where ``%(name)s`` is the name of the ``<taskqueue-server/>``) until
-   the asynchronous processing request has returned a HTTP response.
+   each asynchronous processing request has returned a HTTP response.
 
-3. On startup and when all known messages have been processed,
+3. On startup, and when all known messages have been processed,
    ``<taskqueue-server/>`` purges ``collective.taskqueue.%(queue)s.%(name)s``
-   into ``collective.taskqueue.%(queue)s`` (with ``rpoplpush``) and and
-   those tasks are processed again.
+   into ``collective.taskqueue.%(queue)s`` (with ``rpoplpush``) and
+   those tasks are processed again. (E.g. if Plone was forced to restart
+   in middle of task handling request.)
 
-Redis integration uses PubSub to notify itself of new messages in queue.
+Redis integration uses PubSub to notify itself about new messages in queue
+(and get as instant handling as possible in terms of Plone's asyncore-loop).
