@@ -1,11 +1,11 @@
 Changelog
 =========
 
-0.4.3 (unreleased)
+0.4.3 (2013-11-15)
 ------------------
 
-- Nothing changed yet.
-
+- Update README
+  [Asko Soukka]
 
 0.4.2 (2013-11-15)
 ------------------
