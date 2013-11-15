@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='collective.taskqueue',
-    version='0.4.3',
+    version='0.4.4.dev0',
     description='',
     long_description=(open('README.rst').read() + '\n' +
                       open('CHANGES.txt').read()),
