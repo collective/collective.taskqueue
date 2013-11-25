@@ -34,9 +34,9 @@
       Redis server password.
       </description>
     </key>
-    <key name="unix_socket_path" datatype="string" default="default">
+    <key name="unix_socket_path" datatype="string" default="">
       <description>
-      Redis server unix socket path (use insetad of *host* and *port*).
+      Redis server unix socket path (use instead of *host* and *port*).
       </description>
     </key>
   </sectiontype>
