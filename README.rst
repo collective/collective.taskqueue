@@ -1,8 +1,8 @@
 collective.taskqueue
 ====================
 
-.. image:: https://secure.travis-ci.org/datakurre/collective.taskqueue.png
-   :target: http://travis-ci.org/datakurre/collective.taskqueue
+.. image:: https://secure.travis-ci.org/collective/collective.taskqueue.png
+   :target: http://travis-ci.org/collective/collective.taskqueue
 
 Yet another way to queue and execute asynchronous tasks in Plone.
 
