@@ -54,8 +54,8 @@ class TaskQueueFactory(object):
             klass = getattr(mod, self.type)
         else:
             mod = __import__(self.type[:self.type.rfind('.')],
-                             fromlist=[self.type[self.type.rfind('.')+1:]])
-            klass = getattr(mod, self.type[self.type.rfind('.')+1:])
+                             fromlist=[self.type[self.type.rfind('.') + 1:]])
+            klass = getattr(mod, self.type[self.type.rfind('.') + 1:])
         task_queue = klass(**self.kwargs)
         provideUtility(task_queue, ITaskQueue, name=self.queue)
 
@@ -100,10 +100,10 @@ class TaskQueueServerFactory(object):
         from ZServer.AccessLogger import access_logger
         from collective.taskqueue.server import TaskQueueServer
         server = TaskQueueServer(name=self.name,
-                                queue=self.queue,
-                                concurrent_limit=self.concurrent_limit,
-                                retry_max_count=self.retry_max_count,
-                                access_logger=access_logger)
+                                 queue=self.queue,
+                                 concurrent_limit=self.concurrent_limit,
+                                 retry_max_count=self.retry_max_count,
+                                 access_logger=access_logger)
 
         # Support plone.app.debugtoolbar:
         server.ip = self.ip
