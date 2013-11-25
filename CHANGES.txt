@@ -1,12 +1,15 @@
 Changelog
 =========
 
-0.4.4 (unreleased)
+0.4.4 (2013-11-25)
 ------------------
 
-- fix default for unix_socket_path
+- Fix regression where redis+msgpack where accidentally always required [#7]
+  [Asko Soukka]
+- Update docs
   [Dylan Jay]
-
+- Fix default for 'unix_socket_path' [fixes #8]
+  [Dylan Jay]
 
 0.4.3 (2013-11-15)
 ------------------
