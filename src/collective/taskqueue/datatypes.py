@@ -25,6 +25,13 @@ class TaskQueueFactory(object):
             'unix_socket_path': section.unix_socket_path
         }
 
+        # Drop empty or conflicting kwargs
+        for key in [k for k in self.kwargs if self.kwargs[k] in ('', None)]:
+            self.kwargs.pop(key)
+        if self.kwargs.get('unix_socket_path'):
+            self.kwargs.pop('host')
+            self.kwargs.pop('port')
+
         if self.queue == 'redis':
             assert HAS_REDIS, (
                 'Redis-queues require redis-package. '
