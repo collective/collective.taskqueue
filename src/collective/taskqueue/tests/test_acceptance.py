@@ -13,7 +13,11 @@ from zope.interface import Interface
 from z3c.form import form, field, button
 
 from collective.taskqueue import taskqueue
-from collective.taskqueue.testing import TASK_QUEUE_ZSERVER_FIXTURE, REDIS_TASK_QUEUE_ZSERVER_FIXTURE, ZSERVER_FIXTURE
+from collective.taskqueue.config import HAS_REDIS
+from collective.taskqueue.config import HAS_MSGPACK
+from collective.taskqueue.testing import TASK_QUEUE_ZSERVER_FIXTURE
+from collective.taskqueue.testing import REDIS_TASK_QUEUE_ZSERVER_FIXTURE
+from collective.taskqueue.testing import ZSERVER_FIXTURE
 
 
 class TaskQueueFormLayer(PloneSandboxLayer):
@@ -83,8 +87,9 @@ def test_suite():
         layered(robotsuite.RobotTestSuite('test_acceptance.robot'),
                 layer=TASK_QUEUE_ROBOT_TESTING),
     ])
-    suite.addTests([
-        layered(robotsuite.RobotTestSuite('test_acceptance.robot'),
-                layer=REDIS_TASK_QUEUE_ROBOT_TESTING),
-    ])
+    if HAS_REDIS and HAS_MSGPACK:
+        suite.addTests([
+            layered(robotsuite.RobotTestSuite('test_acceptance.robot'),
+                    layer=REDIS_TASK_QUEUE_ROBOT_TESTING),
+        ])
     return suite
