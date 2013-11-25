@@ -20,9 +20,10 @@ before_script:
 #- travis-artifacts upload --path parts/test
 script: bin/test
 env:
-  global:
+  matrix:
   - BUILDOUT=travis.cfg
   - BUILDOUT=travis-redis.cfg
+#  global:
 #  - ARTIFACTS_S3_BUCKET=example.product
 #  - ROBOT_BUILD_NUMBER=travis-$TRAVIS_BUILD_NUMBER
 #  - ROBOT_REMOTE_URL=http://$SAUCE_USERNAME:$SAUCE_ACCESS_KEY@ondemand.saucelabs.com:80/wd/hub
