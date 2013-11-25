@@ -4,7 +4,8 @@ Changelog
 0.4.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- fix default for unix_socket_path
+  [Dylan Jay]
 
 
 0.4.3 (2013-11-15)

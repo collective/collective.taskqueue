@@ -80,7 +80,7 @@ Example Redis configuration with multiple queues:
        <taskqueue>
          type redis
          unix_socket_path ${buildout:directory}/var/redis.sock
-       </product-config>
+       </taskqueue>
        <taskqueue-server>
          name ${:_buildout_section_name_}
        </taskqueue-server>
@@ -88,7 +88,7 @@ Example Redis configuration with multiple queues:
          type redis
          queue mailhost
          unix_socket_path ${buildout:directory}/var/redis.sock
-       </product-config>
+       </taskqueue>
        <taskqueue-server>
          queue mailhost
          name ${:_buildout_section_name_}
