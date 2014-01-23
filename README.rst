@@ -135,7 +135,7 @@ Supported  ``<taskqueue />``-settings are:
     a custom type.
 
 ``unix_socket_path``
-    Redis server unix socket path (use insetad of *host* and *port*).
+    Redis server unix socket path (use instead of *host* and *port*).
 
 Other supported Redis-queue options are: *host*, *port*, *db* and *password*.
 
