@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 import asyncore
 import logging
-import socket
 from App.config import getConfiguration
 
 from zope.configuration import xmlconfig
+from zope.component import getSiteManager
 
 from plone.testing import Layer
 from plone.testing import z2
+from collective.taskqueue.config import HAS_REDIS
+from collective.taskqueue.config import HAS_MSGPACK
 from collective.taskqueue import taskqueue
+from collective.taskqueue.interfaces import ITaskQueue
+
+if HAS_REDIS and HAS_MSGPACK:
+    from collective.taskqueue import redisqueue
 
 logger = logging.getLogger('collective.taskqueue')
 
@@ -92,10 +98,16 @@ class TaskQueueServerLayer(Layer):
 class LocalTaskQueueServerLayer(TaskQueueServerLayer):
 
     def setUp(self):
-        import collective.taskqueue.tests
-        xmlconfig.file('test_taskqueue.zcml', collective.taskqueue.tests,
-                       context=self['configurationContext'])
+#       import collective.taskqueue.tests
+#       xmlconfig.file('test_taskqueue.zcml', collective.taskqueue.tests,
+#                      context=self['configurationContext'])
+#       super(LocalTaskQueueServerLayer, self).setUp()
+
+        queue = taskqueue.LocalVolatileTaskQueue()
+        sm = getSiteManager()
+        sm.registerUtility(queue, provided=ITaskQueue, name='test-queue')
         super(LocalTaskQueueServerLayer, self).setUp()
+
 
 TASK_QUEUE_FIXTURE = LocalTaskQueueServerLayer()
 TASK_QUEUE_ZSERVER_FIXTURE = LocalTaskQueueServerLayer(zserver_enabled=True)
@@ -112,9 +124,14 @@ TASK_QUEUE_FUNCTIONAL_TESTING = z2.FunctionalTesting(
 class RedisTaskQueueServerLayer(TaskQueueServerLayer):
 
     def setUp(self):
-        import collective.taskqueue.tests
-        xmlconfig.file('test_redisqueue.zcml', collective.taskqueue.tests,
-                       context=self['configurationContext'])
+#       import collective.taskqueue.tests
+#       xmlconfig.file('test_redisqueue.zcml', collective.taskqueue.tests,
+#                      context=self['configurationContext'])
+
+        queue = redisqueue.RedisTaskQueue()
+        sm = getSiteManager()
+        sm.registerUtility(queue, provided=ITaskQueue, name='test-queue')
+
         super(RedisTaskQueueServerLayer, self).setUp()
 
 REDIS_TASK_QUEUE_FIXTURE = RedisTaskQueueServerLayer()
