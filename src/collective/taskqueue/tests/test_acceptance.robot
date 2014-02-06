@@ -48,7 +48,3 @@ A visitor can view the document
   Log out
   Go to  ${PLONE_URL}/a-document
   Page should contain  A New Document
-
-
-
-

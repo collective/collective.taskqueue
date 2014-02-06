@@ -98,19 +98,15 @@ class TaskQueueServerLayer(Layer):
 class LocalTaskQueueServerLayer(TaskQueueServerLayer):
 
     def setUp(self):
-#       import collective.taskqueue.tests
-#       xmlconfig.file('test_taskqueue.zcml', collective.taskqueue.tests,
-#                      context=self['configurationContext'])
-#       super(LocalTaskQueueServerLayer, self).setUp()
-
         queue = taskqueue.LocalVolatileTaskQueue()
         sm = getSiteManager()
         sm.registerUtility(queue, provided=ITaskQueue, name='test-queue')
         super(LocalTaskQueueServerLayer, self).setUp()
 
 
-TASK_QUEUE_FIXTURE = LocalTaskQueueServerLayer()
-TASK_QUEUE_ZSERVER_FIXTURE = LocalTaskQueueServerLayer(zserver_enabled=True)
+TASK_QUEUE_FIXTURE = LocalTaskQueueServerLayer(queue='test-queue')
+TASK_QUEUE_ZSERVER_FIXTURE =\
+    LocalTaskQueueServerLayer(queue='test-queue', zserver_enabled=True)
 
 TASK_QUEUE_INTEGRATION_TESTING = z2.IntegrationTesting(
     bases=(TASK_QUEUE_FIXTURE,),
@@ -124,19 +120,14 @@ TASK_QUEUE_FUNCTIONAL_TESTING = z2.FunctionalTesting(
 class RedisTaskQueueServerLayer(TaskQueueServerLayer):
 
     def setUp(self):
-#       import collective.taskqueue.tests
-#       xmlconfig.file('test_redisqueue.zcml', collective.taskqueue.tests,
-#                      context=self['configurationContext'])
-
         queue = redisqueue.RedisTaskQueue()
         sm = getSiteManager()
         sm.registerUtility(queue, provided=ITaskQueue, name='test-queue')
-
         super(RedisTaskQueueServerLayer, self).setUp()
 
-REDIS_TASK_QUEUE_FIXTURE = RedisTaskQueueServerLayer()
+REDIS_TASK_QUEUE_FIXTURE = RedisTaskQueueServerLayer(queue='test-queue')
 REDIS_TASK_QUEUE_ZSERVER_FIXTURE =\
-    RedisTaskQueueServerLayer(zserver_enabled=True)
+    RedisTaskQueueServerLayer(queue='test-queue', zserver_enabled=True)
 
 REDIS_TASK_QUEUE_INTEGRATION_TESTING = z2.IntegrationTesting(
     bases=(REDIS_TASK_QUEUE_FIXTURE,),

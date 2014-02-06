@@ -35,12 +35,10 @@ class TaskQueueFormLayer(PloneSandboxLayer):
                        collective.taskqueue.tests,
                        context=configurationContext)
 
-
     def setUpPloneSite(self, portal):
         portal.portal_workflow.setDefaultChain(
             'simple_publication_workflow')
         #self.applyProfile(portal, 'collective.taskqueue.pasplugin:default')
-
 
 TASK_QUEUE_FORM_FIXTURE = TaskQueueFormLayer()
 
