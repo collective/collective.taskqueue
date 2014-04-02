@@ -195,7 +195,10 @@ def make_env(req, method='GET'):
         key, value = header.split(':', 1)
         key = key.upper()
         value = value.strip()
-        key = 'HTTP_{0:s}'.format('_'.join(key.split('-')))
+        if key.startswith('CONTENT-'):
+            key = '{0:s}'.format('_'.join(key.split('-')))
+        else:
+            key = 'HTTP_{0:s}'.format('_'.join(key.split('-')))
         if value:
             env[key] = value
 

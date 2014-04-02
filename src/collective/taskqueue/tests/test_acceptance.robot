@@ -17,6 +17,17 @@ Scenario: As an manager I can queue publication of a document
      When I queue publication of the document
      Then a visitor can view the document
 
+Scenario: As an manager I cannot see view registered for the task layer
+    Given a site owner
+     When I open a view registered for the task layer
+     Then I see page not found error
+
+Scenario: As an manager I can queue an email to be sent
+    [Tags]  current
+    Given a site owner
+      and an email queuing form
+     When I queue a new email
+     Then my email is being sent
 
 *** Keywords ***
 
@@ -32,6 +43,11 @@ A new document
   ...  id=a-document  title=A New Document
   Disable autologin
 
+An email queuing form
+  Go to  ${PLONE_URL}/queue-task-email-form
+  Page should contain element  form-widgets-message
+  Page should contain element  form-widgets-amount
+
 # When
 
 I queue publication of the document
@@ -42,9 +58,29 @@ I queue publication of the document
   Click button  Queue
   Page should contain  Queued a new request
 
+I open a view registered for the task layer
+  Go to  ${PLONE_URL}/send-email-view
+
+I queue a new email
+  Page should contain element  form-widgets-message
+  Page should contain element  form-widgets-amount
+  Input text  form-widgets-message  This is my message
+  Input text  form-widgets-amount  1
+  Click button  Queue
+  Page should contain  Queued 1 new email(s)
+
 # Then
 
 A visitor can view the document
   Log out
   Go to  ${PLONE_URL}/a-document
   Page should contain  A New Document
+
+I see page not found error
+  Page should contain  This page does not seem to exist
+
+My email is being sent
+  ${message} =  Get the last sent email
+  ${amount} =  Get the total amount of sent emails
+  Should contain  ${message}  This is my message
+  Should be equal  '${amount}'  '1'

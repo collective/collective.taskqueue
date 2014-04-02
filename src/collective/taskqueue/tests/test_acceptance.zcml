@@ -10,4 +10,19 @@
         permission="cmf.ManagePortal"
         />
 
+    <browser:page
+        name="queue-task-email-form"
+        for="*"
+        class=".test_acceptance.TaskQueueEmailForm"
+        permission="cmf.ManagePortal"
+        />
+
+    <browser:page
+        name="send-email-view"
+        for="*"
+        class=".test_acceptance.TaskQueueEmailView"
+        layer="collective.taskqueue.interfaces.ITaskQueueLayer"
+        permission="zope2.View"
+        />
+
 </configure>

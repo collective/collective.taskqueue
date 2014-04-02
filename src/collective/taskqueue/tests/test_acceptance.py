@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import unittest
 from Products.CMFCore.utils import getToolByName
+from Products.Five import BrowserView
 
 from plone.app.robotframework.testing import REMOTE_LIBRARY_BUNDLE_FIXTURE
+from plone.app.robotframework.testing import MOCK_MAILHOST_FIXTURE
 from plone.app.testing import PloneSandboxLayer
 from plone.app.testing import PLONE_FIXTURE
 import robotsuite
@@ -45,15 +47,17 @@ TASK_QUEUE_FORM_FIXTURE = TaskQueueFormLayer()
 
 TASK_QUEUE_ROBOT_TESTING = z2.FunctionalTesting(
     bases=(TASK_QUEUE_ZSERVER_FIXTURE,
-           TASK_QUEUE_FORM_FIXTURE,
+           MOCK_MAILHOST_FIXTURE,
            REMOTE_LIBRARY_BUNDLE_FIXTURE,
+           TASK_QUEUE_FORM_FIXTURE,
            ZSERVER_FIXTURE),
     name='TaskQueue:Robot')
 
 REDIS_TASK_QUEUE_ROBOT_TESTING = z2.FunctionalTesting(
     bases=(REDIS_TASK_QUEUE_ZSERVER_FIXTURE,
-           TASK_QUEUE_FORM_FIXTURE,
+           MOCK_MAILHOST_FIXTURE,
            REMOTE_LIBRARY_BUNDLE_FIXTURE,
+           TASK_QUEUE_FORM_FIXTURE,
            ZSERVER_FIXTURE),
     name='RedisTaskQueue:Robot')
 
@@ -77,6 +81,45 @@ class TaskQueueForm(form.Form):
         taskqueue.add(data.get('url'))
         plone_utils = getToolByName(self.context, 'plone_utils')
         plone_utils.addPortalMessage("Queued a new request")
+
+
+class ITaskQueueEmailForm(Interface):
+
+    message = schema.TextLine(title=u"Message")
+    amount = schema.Int(title=u"Amount")
+
+
+class TaskQueueEmailForm(form.Form):
+
+    fields = field.Fields(ITaskQueueEmailForm)
+
+    ignoreContext = True
+
+    @button.buttonAndHandler(u"Queue")
+    def handleQueue(self, action):
+        data, errors = self.extractData()
+        if errors:
+            return False
+        for i in range(data['amount']):
+            taskqueue.add('/plone/send-email-view', method='POST')
+        plone_utils = getToolByName(self.context, 'plone_utils')
+        plone_utils.addPortalMessage(
+            "Queued {0:d} new email(s)".format(data['amount']))
+
+
+class TaskQueueEmailView(BrowserView):
+
+    def __call__(self):
+        from zope.component import getUtility
+        from Products.MailHost.interfaces import IMailHost
+        mailhost = getUtility(IMailHost)
+        mailhost.send(
+            self.request.form.get('form.widgets.message'),
+            'recipient@localhost',
+            'sender@localhost',
+            'Test Email'
+        )
+        return 'Ok.'
 
 
 def test_suite():
