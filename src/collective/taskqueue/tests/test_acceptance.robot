@@ -28,11 +28,11 @@ Scenario: As a manager I can queue an email to be sent
      When I queue a new email
      Then my email is being sent
 
-Scenario: As a manager I can queue 100 emails to be sent
+Scenario: As a manager I can queue 1000 emails to be sent
     Given a site owner
       and an email queuing form
-     When I queue 100 new emails
-     Then exactly 100 emails are being sent
+     When I queue 1000 new emails
+     Then exactly 1000 emails are being sent
 
 *** Keywords ***
 
@@ -74,13 +74,13 @@ I queue a new email
   Click button  Queue
   Page should contain  Queued 1 new email(s)
 
-I queue 100 new emails
+I queue 1000 new emails
   Page should contain element  form-widgets-message
   Page should contain element  form-widgets-amount
   Input text  form-widgets-message  This is my message
-  Input text  form-widgets-amount  100
+  Input text  form-widgets-amount  1000
   Click button  Queue
-  Page should contain  Queued 100 new email(s)
+  Page should contain  Queued 1000 new email(s)
 
 # Then
 
@@ -98,8 +98,8 @@ My email is being sent
   Should contain  ${message}  This is my message
   Should be equal  '${amount}'  '1'
 
-Exactly 100 emails are being sent
-  Wait until keyword succeeds  1 min  5 sec  '100' emails should have been sent
+Exactly 1000 emails are being sent
+  Wait until keyword succeeds  1 min  5 sec  '1000' emails should have been sent
 
 '${n}' emails should have been sent
   ${amount} =  Get the total amount of sent emails
