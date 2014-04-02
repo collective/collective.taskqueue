@@ -148,6 +148,9 @@ def make_task(url=None, method='GET', params=None, headers=None,
     elif payload is _marker:
         payload = ''
 
+    # Set special X-Task-Id -header to identify each message
+    headers['X-Task-Id'] = str(uuid.uuid4())
+
     # Set special X-Task-User-Id -header for Task Queue PAS plugin
     task_user_id = getSecurityManager().getUser().getId()
     if bool(task_user_id):
@@ -155,7 +158,6 @@ def make_task(url=None, method='GET', params=None, headers=None,
 
     # Build task dictionary
     task = {
-        'uuid': str(uuid.uuid4()),  # Ensure that each task is unique.
         'url': url,  # Physical /Plone/to/callable with optional querystring
         'method': method,  # GET or POST
         'headers': ['{0:s}: {1:s}'.format(key, value)
