@@ -11,23 +11,29 @@ Test Teardown  Close all browsers
 
 *** Test Cases ***
 
-Scenario: As an manager I can queue publication of a document
+Scenario: As a manager I can queue publication of a document
     Given a site owner
       and a new document
      When I queue publication of the document
      Then a visitor can view the document
 
-Scenario: As an manager I cannot see view registered for the task layer
+Scenario: As a manager I cannot see view registered for the task layer
     Given a site owner
      When I open a view registered for the task layer
      Then I see page not found error
 
-Scenario: As an manager I can queue an email to be sent
-    [Tags]  current
+Scenario: As a manager I can queue an email to be sent
     Given a site owner
       and an email queuing form
      When I queue a new email
      Then my email is being sent
+
+Scenario: As a manager I can queue 100 emails to be sent
+    [Tags]  current
+    Given a site owner
+      and an email queuing form
+     When I queue 100 new emails
+     Then exactly 100 emails are being sent
 
 *** Keywords ***
 
@@ -69,6 +75,14 @@ I queue a new email
   Click button  Queue
   Page should contain  Queued 1 new email(s)
 
+I queue 100 new emails
+  Page should contain element  form-widgets-message
+  Page should contain element  form-widgets-amount
+  Input text  form-widgets-message  This is my message
+  Input text  form-widgets-amount  100
+  Click button  Queue
+  Page should contain  Queued 100 new email(s)
+
 # Then
 
 A visitor can view the document
@@ -84,3 +98,10 @@ My email is being sent
   ${amount} =  Get the total amount of sent emails
   Should contain  ${message}  This is my message
   Should be equal  '${amount}'  '1'
+
+Exactly 100 emails are being sent
+  Wait until keyword succeeds  1 min  5 sec  '100' emails should have been sent
+
+'${n}' emails should have been sent
+  ${amount} =  Get the total amount of sent emails
+  Should be equal  '${amount}'  '${n}'

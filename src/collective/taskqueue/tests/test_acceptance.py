@@ -110,9 +110,7 @@ class TaskQueueEmailForm(form.Form):
 class TaskQueueEmailView(BrowserView):
 
     def __call__(self):
-        from zope.component import getUtility
-        from Products.MailHost.interfaces import IMailHost
-        mailhost = getUtility(IMailHost)
+        mailhost = getToolByName(self.context, 'MailHost')
         mailhost.send(
             self.request.form.get('form.widgets.message'),
             'recipient@localhost',
