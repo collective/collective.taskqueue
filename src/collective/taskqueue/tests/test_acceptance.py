@@ -115,9 +115,9 @@ class TaskQueueEmailView(BrowserView):
             self.request.form.get('form.widgets.message'),
             'recipient@localhost',
             'sender@localhost',
-            'Test Email'
+            "Test Email"
         )
-        return 'Ok.'
+        return u"Ok."
 
 
 def test_suite():

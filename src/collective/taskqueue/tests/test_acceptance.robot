@@ -29,7 +29,6 @@ Scenario: As a manager I can queue an email to be sent
      Then my email is being sent
 
 Scenario: As a manager I can queue 100 emails to be sent
-    [Tags]  current
     Given a site owner
       and an email queuing form
      When I queue 100 new emails
