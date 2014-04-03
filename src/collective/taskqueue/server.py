@@ -6,8 +6,10 @@ import socket
 import StringIO
 import posixpath
 import logging
+import threading
 
 from ZServer.ClockServer import LogHelper
+from ZServer.PubCore.ZEvent import Wakeup
 from ZServer.medusa.http_server import http_request
 from ZServer.medusa.default_handler import unquote
 from ZServer.PubCore import handle
@@ -45,8 +47,12 @@ class TaskQueueServer(asyncore.dispatcher):
                     pass
             self.logger = DummyLogger()
 
-        # Init current task list
-        self.tasks = []
+        # Identify the main thread
+        self.ident = threading.currentThread().ident
+
+        # Init unfinished tasks counter
+        self.unfinished_tasks_mutex = threading.Lock()
+        self.unfinished_tasks = 0
 
         # Init settings
         self.name = name
@@ -102,17 +108,19 @@ class TaskQueueServer(asyncore.dispatcher):
                 self._set_redis_socket(task_queue)
 
         # Poll task queue
-        if (self.concurrent_limit == 0
-                or len(self.tasks) < self.concurrent_limit):
-            task = task_queue.get(consumer_name=self.name)
-            if task is not None:
-                self.dispatch(task)
+        if self.unfinished_tasks_mutex.acquire(False):  # don't block, but skip
+            if (self.concurrent_limit == 0
+                    or self.unfinished_tasks < self.concurrent_limit):
+                task = task_queue.get(consumer_name=self.name)
+                if task is not None:
+                    self.unfinished_tasks += 1
+                    self.dispatch(task)
+            self.unfinished_tasks_mutex.release()
 
         return self._readable
 
     def dispatch(self, task):
         req, zreq, resp = make_request_and_response(self, task)
-        self.tasks.append(task)
         self.handler('Zope2', zreq, resp)
 
     def handle_read(self):
@@ -229,18 +237,28 @@ class TaskChannel(object):
             self.output += producer.more()
 
     def done(self):
-        # Clear done task from server
-        self.server.tasks.remove(self.task)
-
         # Read status line from output
         status_line = self.output.split('\r\n').pop(0)
 
-        # Acknowledge done task for queue
+        # Acknowledge done task for queue with expected consumer state
         task_queue = self.server.get_task_queue()
+
+        # Acquire lock when not the main thread
+        if self.server.ident != threading.currentThread().ident:
+            self.server.unfinished_tasks_mutex.acquire()
+
+        self.server.unfinished_tasks -= 1
         task_queue.task_done(self.task,
-                             status_line=staticmethod,
+                             status_line=status_line,
                              consumer_name=self.server.name,
-                             consumer_length=len(self.server.tasks))
+                             consumer_length=self.server.unfinished_tasks)
+
+        # Release lock when not the main thread
+        if self.server.ident != threading.currentThread().ident:
+            self.server.unfinished_tasks_mutex.release()
+
+        # Signal that mutex is free and queue can be polled again
+        Wakeup()
 
         # Log warning when HTTP 3xx
         if status_line.startswith('HTTP/1.1 3'):

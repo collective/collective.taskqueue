@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from App.config import getConfiguration
+
 import msgpack
 
 from plone.memoize import forever
@@ -71,7 +72,7 @@ class RedisTaskQueue(TaskQueueBase):
         consumer_key = '{0:s}.{1:s}'.format(self.redis_key, consumer_name)
 
         self.redis.lrem(consumer_key, -1, self.serialize(task))
-        if consumer_length == 0:
+        if consumer_length == 0 and int(self.redis.llen(consumer_key)):
             self._requeue_processing(consumer_name)
 
     def _requeue_processing(self, consumer_name):
