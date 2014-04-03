@@ -1,11 +1,14 @@
 Changelog
 =========
 
-0.4.5 (unreleased)
+0.5.0 (2014-04-03)
 ------------------
 
-- Nothing changed yet.
-
+- Fix threading and execution order related issue where currently active
+  Redis tasks were requeued (and processed more than once)
+  [Asko Soukka]
+- Add 'X-Task-Id'-header to help keeping track of tasks n consuming views
+  [Asko Soukka]
 
 0.4.4 (2013-11-25)
 ------------------
