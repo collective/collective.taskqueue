@@ -62,13 +62,13 @@ class TaskQueueServer(asyncore.dispatcher):
 
         # Init asyncore.dispatcher
         asyncore.dispatcher.__init__(self)
-        self._readable = False
-        self._readability_confirmed = False
+        self._readable = None  # set by the first self.readable()
 
         # Create dummy socket to join into asyncore loop
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._dummy_socket = self.socket
 
-    def _set_redis_socket(self, task_queue):
+    def _set_readable_redis(self, task_queue):
         redis_connected = False
 
         import redis
@@ -84,10 +84,10 @@ class TaskQueueServer(asyncore.dispatcher):
         if redis_connected:
             # Replace initial dummy socket with Redis PubSub socket
             self.del_channel()
-            self.socket.close()
+            # XXX: Because the following line mutates asyncore map within poll,
+            # it's important that the currently mapped socket remains open.
             self.set_socket(task_queue.pubsub.connection._sock)
             self._readable = True
-            self._readability_confirmed = True
             logger.info("TaskQueueServer listening to Redis events for "
                         "Redis queue '%s'." % task_queue.redis_key)
 
@@ -101,11 +101,17 @@ class TaskQueueServer(asyncore.dispatcher):
     def readable(self):
         task_queue = self.get_task_queue()
 
-        # Configure asyncore socket map to poll Redis events for Redis queues
-        if not self._readability_confirmed and HAS_REDIS:
-            from collective.taskqueue.redisqueue import RedisTaskQueue
-            if issubclass(task_queue.__class__, RedisTaskQueue):
-                self._set_redis_socket(task_queue)
+        # Init asyncore dispatcher readability
+        if self._readable is None:
+            if HAS_REDIS:
+                from collective.taskqueue.redisqueue import RedisTaskQueue
+                if issubclass(task_queue.__class__, RedisTaskQueue):
+                    # Configure asyncore socket map to poll Redis events
+                    self._set_readable_redis(task_queue)
+                else:
+                    self._readable = False
+            else:
+                self._readable = False
 
         # Poll task queue
         if self.unfinished_tasks_mutex.acquire(False):  # don't block, but skip
@@ -117,14 +123,14 @@ class TaskQueueServer(asyncore.dispatcher):
                     self.dispatch(task)
             self.unfinished_tasks_mutex.release()
 
-        return self._readable
+        return bool(self._readable)
 
     def dispatch(self, task):
         req, zreq, resp = make_request_and_response(self, task)
         self.handler('Zope2', zreq, resp)
 
     def handle_read(self):
-        if self._readable and len(self.get_task_queue()) < 1:
+        if bool(self._readable) and len(self.get_task_queue()) < 1:
             try:
                 self.recv(4096)
             except socket.error:
@@ -137,20 +143,21 @@ class TaskQueueServer(asyncore.dispatcher):
         pass
 
     def handle_close(self, force=False):
-        if self._readable:
+        if bool(self._readable):
             logger.warning('TaskQueueServer disconnected.')
             # Reset dispatcher into initial dummy state to trigger reconnect
             self.del_channel()
             self.socket.close()
-            self._readable = False
-            self._readability_confirmed = False
+            self._dummy_socket.close()
+            self._readable = None
             if not force:
                 self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+                self._dummy_socket = self.socket
         else:
             asyncore.dispatcher.handle_close(self)
 
     def handle_error(self):
-        if self._readable:
+        if bool(self._readable):
             asyncore.dispatcher.handle_error(self)
 
 
