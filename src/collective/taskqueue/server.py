@@ -115,13 +115,15 @@ class TaskQueueServer(asyncore.dispatcher):
 
         # Poll task queue
         if self.unfinished_tasks_mutex.acquire(False):  # don't block, but skip
-            if (self.concurrent_limit == 0
-                    or self.unfinished_tasks < self.concurrent_limit):
-                task = task_queue.get(consumer_name=self.name)
-                if task is not None:
-                    self.unfinished_tasks += 1
-                    self.dispatch(task)
-            self.unfinished_tasks_mutex.release()
+            try:
+                if (self.concurrent_limit == 0
+                        or self.unfinished_tasks < self.concurrent_limit):
+                    task = task_queue.get(consumer_name=self.name)
+                    if task is not None:
+                        self.unfinished_tasks += 1
+                        self.dispatch(task)
+            finally:
+                self.unfinished_tasks_mutex.release()
 
         return bool(self._readable)
 
@@ -251,18 +253,20 @@ class TaskChannel(object):
         task_queue = self.server.get_task_queue()
 
         # Acquire lock when not the main thread
-        if self.server.ident != threading.currentThread().ident:
-            self.server.unfinished_tasks_mutex.acquire()
+        try:
+            if self.server.ident != threading.currentThread().ident:
+                self.server.unfinished_tasks_mutex.acquire()
 
-        self.server.unfinished_tasks -= 1
-        task_queue.task_done(self.task,
-                             status_line=status_line,
-                             consumer_name=self.server.name,
-                             consumer_length=self.server.unfinished_tasks)
+            self.server.unfinished_tasks -= 1
+            task_queue.task_done(self.task,
+                                 status_line=status_line,
+                                 consumer_name=self.server.name,
+                                 consumer_length=self.server.unfinished_tasks)
 
-        # Release lock when not the main thread
-        if self.server.ident != threading.currentThread().ident:
-            self.server.unfinished_tasks_mutex.release()
+        finally:
+            # Release lock when not the main thread
+            if self.server.ident != threading.currentThread().ident:
+                self.server.unfinished_tasks_mutex.release()
 
         # Signal that mutex is free and queue can be polled again
         Wakeup()
