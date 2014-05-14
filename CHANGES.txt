@@ -4,8 +4,11 @@ Changelog
 0.5.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fix issue where concurrent task counter mutex was not released due to
+  uncaught exception
+  [Asko Soukka]
+- Fix issue where a socket in asyncore.map was closed during asyncore.poll
+  [Asko Soukka]
 
 0.5.0 (2014-04-03)
 ------------------
