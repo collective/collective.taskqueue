@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.6.0 (unreleased)
+0.6.0 (2014-05-19)
 ------------------
 
 - Add taskqueue.add to return task id, which later matches
