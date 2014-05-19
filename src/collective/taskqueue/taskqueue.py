@@ -78,8 +78,9 @@ class TaskQueueBase(object):
 
     def add(self, url=None, method='GET', params=None, headers=None,
             payload=_marker):
-        task = make_task(url, method, params, headers, payload)
+        task_id, task = make_task(url, method, params, headers, payload)
         get_transaction().join(self.transaction_data_manager(self, task))
+        return task_id
 
 
 class LocalVolatileTaskQueue(TaskQueueBase):
@@ -165,7 +166,7 @@ def make_task(url=None, method='GET', params=None, headers=None,
         'payload': payload
     }
 
-    return task
+    return headers['X-Task-Id'], task
 
 
 def add(url=None, method='GET', params=None, headers=None, payload=_marker,
@@ -186,7 +187,7 @@ def add(url=None, method='GET', params=None, headers=None, payload=_marker,
                        queue, fallback)
         task_queue = getUtility(ITaskQueue, name=fallback)
 
-    task_queue.add(url, method, params, headers, payload)
+    return task_queue.add(url, method, params, headers, payload)
 
 
 def reset(queue=_marker):
