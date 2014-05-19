@@ -1,11 +1,12 @@
 Changelog
 =========
 
-0.5.2 (unreleased)
+0.6.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Add taskqueue.add to return task id, which later matches
+  request.getHeader('X-Task-Id')
+  [Asko Soukka]
 
 0.5.1 (2014-05-14)
 ------------------
