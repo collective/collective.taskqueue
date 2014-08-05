@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.6.1 (unreleased)
+0.6.1 (2014-08-05)
 ------------------
 
 - Fix issue where language bindings are not set for task queue requests,
