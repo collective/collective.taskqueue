@@ -7,6 +7,12 @@
   <include package=".pasplugin"
            zcml:condition="installed Products.CMFPlone"/>
 
+  <subscriber
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot
+           zope.traversing.interfaces.IBeforeTraverseEvent"
+      handler=".handlers.setLanguageBindings"
+      />
+
   <!--<include package=".tests" file="test_acceptance.zcml" />-->
 
 </configure>
