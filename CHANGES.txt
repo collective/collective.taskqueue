@@ -4,8 +4,9 @@ Changelog
 0.6.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fix issue where language bindings are not set for task queue requests,
+  because the request is not HTTPRequest, but only inherits it
+  [Asko Soukka]
 
 0.6.0 (2014-05-19)
 ------------------
