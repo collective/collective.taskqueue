@@ -40,6 +40,7 @@ Scenario: As a manager I can queue 1000 emails to be sent
 
 A site owner
   Log in  ${SITE_OWNER_NAME}  ${SITE_OWNER_PASSWORD}
+  Page should contain  You are now logged in
 
 A new document
   Enable autologin as  Manager
