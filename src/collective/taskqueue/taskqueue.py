@@ -11,6 +11,7 @@ from App.config import getConfiguration
 from plone.memoize import forever
 from transaction import get as get_transaction
 from transaction.interfaces import IDataManager
+from transaction._transaction import NoRollbackSavepoint
 from zope.component import getUtility
 from zope.component import ComponentLookupError
 from zope.component import getUtilitiesFor
@@ -60,6 +61,9 @@ class TaskQueueTransactionDataManager(object):
 
     def tpc_abort(self, t):
         pass
+
+    def savepoint(self):
+        return NoRollbackSavepoint(self)
 
 
 class TaskQueueBase(object):
