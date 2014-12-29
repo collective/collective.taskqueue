@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-from StringIO import StringIO
 import logging
 import urllib
 from Queue import Queue
 from Queue import Empty
 import uuid
+
 from AccessControl import getSecurityManager
-from App.config import getConfiguration
 
 from plone.memoize import forever
 from transaction import get as get_transaction
-from transaction.interfaces import IDataManager
-from transaction._transaction import NoRollbackSavepoint
+from transaction.interfaces import ISavepointDataManager
+from transaction.interfaces import ISavepoint
 from zope.component import getUtility
 from zope.component import ComponentLookupError
 from zope.component import getUtilitiesFor
@@ -27,9 +26,21 @@ logger = logging.getLogger('collective.taskqueue')
 _marker = object()
 
 
+class DummySavepoint:
+    implements(ISavepoint)
+
+    valid = property(lambda self: self.transaction is not None)
+
+    def __init__(self, datamanager):
+        self.datamanager = datamanager
+
+    def rollback(self):
+        pass
+
+
 class TaskQueueTransactionDataManager(object):
 
-    implements(IDataManager)
+    implements(ISavepointDataManager)
 
     _COUNTER = 0
 
@@ -63,7 +74,7 @@ class TaskQueueTransactionDataManager(object):
         pass
 
     def savepoint(self):
-        return NoRollbackSavepoint(self)
+        return DummySavepoint(self)
 
 
 class TaskQueueBase(object):
