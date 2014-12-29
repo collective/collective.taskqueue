@@ -4,52 +4,52 @@ Changelog
 0.7.0 (2014-12-19)
 ------------------
 
-- Nothing changed yet.
-
+- Replace NoRollbackSavepoint with rollback 'supporting' DummySavepoint
+  [datakurre]
 
 0.6.2 (2014-12-19)
 ------------------
 
 - Add minimal savepoint-support with NoRollbackSavepoint
-  [Asko Soukka]
+  [datakurre]
 
 0.6.1 (2014-08-05)
 ------------------
 
 - Fix issue where language bindings are not set for task queue requests,
   because the request is not HTTPRequest, but only inherits it
-  [Asko Soukka]
+  [datakurre]
 
 0.6.0 (2014-05-19)
 ------------------
 
 - Add taskqueue.add to return task id, which later matches
   request.getHeader('X-Task-Id')
-  [Asko Soukka]
+  [datakurre]
 
 0.5.1 (2014-05-14)
 ------------------
 
 - Fix issue where concurrent task counter mutex was not released due to
   uncaught exception
-  [Asko Soukka]
+  [datakurre]
 - Fix issue where a socket in asyncore.map was closed during asyncore.poll
-  [Asko Soukka]
+  [datakurre]
 
 0.5.0 (2014-04-03)
 ------------------
 
 - Fix threading and execution order related issue where currently active
   Redis tasks were requeued (and processed more than once)
-  [Asko Soukka]
+  [datakurre]
 - Add 'X-Task-Id'-header to help keeping track of tasks n consuming views
-  [Asko Soukka]
+  [datakurre]
 
 0.4.4 (2013-11-25)
 ------------------
 
 - Fix regression where redis+msgpack where accidentally always required [#7]
-  [Asko Soukka]
+  [datakurre]
 - Update docs
   [Dylan Jay]
 - Fix default for 'unix_socket_path' [fixes #8]
@@ -59,69 +59,69 @@ Changelog
 ------------------
 
 - Update README
-  [Asko Soukka]
+  [datakurre]
 
 0.4.2 (2013-11-15)
 ------------------
 
 - Updated README
-  [Asko Soukka]
+  [datakurre]
 
 0.4.1 (2013-11-14)
 ------------------
 
 - Updated README
-  [Asko Soukka]
+  [datakurre]
 
 0.4.0 (2013-11-14)
 ------------------
 
 - Refactor configuration by replacing explicit utilities and
   <product-configuration/> with <taskqueue/>-component
-  [Asko Soukka]
+  [datakurre]
 
 0.3.1 (2013-11-13)
 ------------------
 
 - Enhance acceptance testing support with the first acceptance tests
-  [Asko Soukka]
+  [datakurre]
 
 0.3.0 (2013-11-10)
 ------------------
 
 - Fix TaskQueueServer to re-connect to Redis after Redis restart
-  [Asko Soukka]
+  [datakurre]
 - Fix to ping Redis on Zope start only in development mode
-  [Asko Soukka]
+  [datakurre]
 - Add optional Task Queue PAS plugin to independently authenticate
   queued tasks as their creator
-  [Asko Soukka]
+  [datakurre]
 
 0.2.2 (2013-11-09)
 ------------------
 
 - Fix to flush Redis pub-notifications only when queue has been emptied
   to ensure that all messages will be processed
-  [Asko Soukka]
+  [datakurre]
 
 0.2.1 (2013-11-09)
 ------------------
 
 - Fix taskqueue socket to be not readable by default
-  [Asko Soukka]
+  [datakurre]
 
 0.2.0 (2013-11-09)
 ------------------
 
 - Enhance Redis-integration to connect redis notification pubsub-socket
   directly to asyncore on instant message handling
-  [Asko Soukka]
+  [datakurre]
 - Fix to require redis >= 2.4.10 [fixes #2]
-  [Asko Soukka]
+  [datakurre]
 - Fix to not start with clear error when clearly intending to use
   RedisTaskQueues without redis-dependencies. Also crash when cannot connect to
   Redis. [fixes #1]
-  [Asko Soukka]
+  [datakurre]
 
 0.1.0 (2013-11-03)
 ------------------
