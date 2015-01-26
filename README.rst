@@ -10,9 +10,9 @@ Yet another way to queue and execute asynchronous tasks in Plone.
 
 *collective.taskqueue* enables asynchronous tasks in Plone add-ons by
 providing a small framework for asynchronously queueing requests to
-ZPublisher. With this aproachasynchronous tasks
+ZPublisher. With this approach, asynchronous tasks
 are just normal calls to normally registered browser views (or other
-traversable callables) and they authenticated using PAS as all the other
+traversable callables) and they are authenticated using PAS as are all the other
 requests.
 
 In addition, it's possible to configure views so that they are visible only for
@@ -96,7 +96,7 @@ Example Redis configuration with multiple queues:
 
 It's recommended to only use local Redis-installations, because remote
 connections can be killed by firewalls (there's no ping or heartbeat to keep
-the connection alive thorugh enterprise firewalls).
+the connection alive through enterprise firewalls).
 
 Queue a task:
 
