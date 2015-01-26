@@ -53,7 +53,7 @@ class TaskQueueTransactionDataManager(object):
         TaskQueueTransactionDataManager._COUNTER += 1
 
     def commit(self, t):
-        self.queue.put(self.task)
+        pass
 
     def sortKey(self):
         return self.sort_key
@@ -68,7 +68,7 @@ class TaskQueueTransactionDataManager(object):
         pass
 
     def tpc_finish(self, t):
-        pass
+        self.queue.put(self.task)
 
     def tpc_abort(self, t):
         pass
