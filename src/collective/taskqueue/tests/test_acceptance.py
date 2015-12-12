@@ -17,6 +17,7 @@ from z3c.form import form, field, button
 from collective.taskqueue import taskqueue
 from collective.taskqueue.config import HAS_REDIS
 from collective.taskqueue.config import HAS_MSGPACK
+from collective.taskqueue.config import HAVE_PLONE_5
 from collective.taskqueue.testing import TASK_QUEUE_ZSERVER_FIXTURE
 from collective.taskqueue.testing import REDIS_TASK_QUEUE_ZSERVER_FIXTURE
 from collective.taskqueue.testing import ZSERVER_FIXTURE
@@ -32,6 +33,12 @@ class TaskQueueFormLayer(PloneSandboxLayer):
         #               context=configurationContext)
         #z2.installProduct(app, 'collective.taskqueue.pasplugin')
 
+        if HAVE_PLONE_5:
+            import plone.app.contenttypes
+            xmlconfig.file('configure.zcml',
+                           plone.app.contenttypes,
+                           context=configurationContext)
+
         import collective.taskqueue.tests
         xmlconfig.file('test_acceptance.zcml',
                        collective.taskqueue.tests,
@@ -40,6 +47,8 @@ class TaskQueueFormLayer(PloneSandboxLayer):
     def setUpPloneSite(self, portal):
         portal.portal_workflow.setDefaultChain(
             'simple_publication_workflow')
+        if HAVE_PLONE_5:
+            self.applyProfile(portal, 'plone.app.contenttypes:default')
         #self.applyProfile(portal, 'collective.taskqueue.pasplugin:default')
 
 TASK_QUEUE_FORM_FIXTURE = TaskQueueFormLayer()
@@ -78,7 +87,12 @@ class TaskQueueForm(form.Form):
         data, errors = self.extractData()
         if errors:
             return False
-        taskqueue.add(data.get('url'))
+        _authenticator = self.request.form.get('_authenticator')
+        if not _authenticator:
+            taskqueue.add(data.get('url'))
+        else:
+            taskqueue.add(data.get('url'),
+                          params={'_authenticator': _authenticator})
         plone_utils = getToolByName(self.context, 'plone_utils')
         plone_utils.addPortalMessage("Queued a new request")
 
