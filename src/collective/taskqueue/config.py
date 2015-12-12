@@ -16,5 +16,8 @@ except pkg_resources.DistributionNotFound:
 else:
     HAS_MSGPACK = True
 
+HAVE_PLONE_5 = \
+    int(pkg_resources.get_distribution('Products.CMFPlone').version[0]) > 4
+
 TASK_QUEUE_IDENT = 'TaskQueue'
 TASK_QUEUE_SERVER_IDENT = 'TaskQueueServer'

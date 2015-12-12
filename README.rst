@@ -4,10 +4,6 @@ collective.taskqueue
 .. image:: https://secure.travis-ci.org/collective/collective.taskqueue.png
    :target: http://travis-ci.org/collective/collective.taskqueue
 
-Yet another way to queue and execute asynchronous tasks in Plone.
-
-**This is an experiment. Not yet battle tested.**
-
 *collective.taskqueue* enables asynchronous tasks in Plone add-ons by
 providing a small framework for asynchronously queueing requests to
 ZPublisher. With this approach, asynchronous tasks
@@ -129,6 +125,23 @@ Taskqueue API has been inspired by `Google AppEngine Task Queue API`__.
 
 __ https://developers.google.com/appengine/docs/python/taskqueue/
 
+
+Introspecting queues
+--------------------
+
+As a minimalistic asynchronous framework for Plone, *collective.taskqueue*
+does not provider any user interface for observing or introspecting queues.
+Yet, from trusted Python, it is possible to look up a current length of
+a named queue (name of the default queue is "default"):
+
+.. code:: python
+
+   from zope.component import getUtility
+   from collective.taskqueue.interfaces import ITaskQueue
+
+   len(getUtility(ITaskQueue, name='default'))
+
+
 Advanced configuration
 ----------------------
 
@@ -185,8 +198,7 @@ Advanced usage
 
 ``params`` *(optional, default=None)*
   A dictionary of optional task arguments, which are appended as query string
-  after the given *url*. (When *params* are provided, *url* must not already
-  include any querystring).
+  after the given *url*.
 
 ``headers`` *(optional, default=None)*
   A dictionary of optional HTTP-headers to be appended to (or used to replace)

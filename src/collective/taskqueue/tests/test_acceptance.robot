@@ -63,6 +63,7 @@ I queue publication of the document
   ...  ${PLONE_SITE_ID}/a-document/content_status_modify?workflow_action=publish
   Click button  Queue
   Page should contain  Queued a new request
+  Go to  ${PLONE_URL}/a-document
 
 I open a view registered for the task layer
   Go to  ${PLONE_URL}/send-email-view

@@ -54,14 +54,14 @@ class TestLocalVolatileTaskQueue(unittest.TestCase):
         runAsyncTest(self._testConsumeFromQueue)
         messages = [record.getMessage() for record in handler.records]
         self.assertEqual(messages[-2:],
-                         ["http://nohost/", "http://nohost/Plone"])
+                         ["http://nohost:/", "http://nohost:/Plone"])
 
     def testConsume100FromQueue(self):
         self.assertEqual(len(self.task_queue), 0)
         expected_result = []
         for i in range(100):
             taskqueue.add("/{0:02d}".format(i), queue=self.queue)
-            expected_result.append("http://nohost/{0:02d}".format(i))
+            expected_result.append("http://nohost:/{0:02d}".format(i))
         transaction.commit()
         self.assertEqual(len(self.task_queue), 100)
 

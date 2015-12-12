@@ -1,25 +1,23 @@
 # -*- coding: utf-8 -*-
-import logging
-import urllib
-from Queue import Queue
-from Queue import Empty
-import uuid
-
 from AccessControl import getSecurityManager
-
+from Queue import Empty
+from Queue import Queue
+from collective.taskqueue.interfaces import ITaskQueue
 from plone.memoize import forever
 from transaction import get as get_transaction
-from transaction.interfaces import ISavepointDataManager
 from transaction.interfaces import ISavepoint
-from zope.component import getUtility
+from transaction.interfaces import ISavepointDataManager
 from zope.component import ComponentLookupError
 from zope.component import getUtilitiesFor
+from zope.component import getUtility
 from zope.globalrequest import getRequest
 from zope.interface import implements
 from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleVocabulary
-
-from collective.taskqueue.interfaces import ITaskQueue
+import logging
+import urllib
+import urlparse
+import uuid
 
 logger = logging.getLogger('collective.taskqueue')
 
@@ -143,7 +141,10 @@ def make_task(url=None, method='GET', params=None, headers=None,
     params = params or {}
 
     if params:
-        url = '{0:s}?{1:s}'.format(url, urllib.urlencode(params))
+        parts = list(urlparse.urlparse(url))
+        parts[4] = '&'.join(filter(bool, [parts[4],  # 4 == query
+                                          urllib.urlencode(params)]))
+        url = urlparse.urlunparse(parts)
 
     # Copy HTTP-headers from request._orig_env:
     env = (getattr(request, '_orig_env', None) or {}).copy()
