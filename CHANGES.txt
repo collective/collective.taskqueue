@@ -1,11 +1,13 @@
 Changelog
 =========
 
-0.7.2 (unreleased)
+0.8.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Add support for Plone 5
+  [datakurre]
+- Fix issue where additional params could not be appended for url with query string
+  [datakurre]
 
 0.7.1 (2015-01-26)
 ------------------

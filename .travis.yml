@@ -7,30 +7,17 @@ services:
 cache:
   directories:
   - eggs
-#addons:
-#  sauce_connect:
-#  - username: $SAUCE_USERNAME
-#  - access_key: $SAUCE_ACCESS_KEY
 install:
-- virtualenv test-env --no-setuptools
-- mkdir -p buildout-cache/downloads
-- test-env/bin/python bootstrap.py -c ${BUILDOUT}
+- python bootstrap.py -c ${BUILDOUT}
+- bin/buildout -N -t 3 -c ${BUILDOUT} annotate
 - bin/buildout -N -t 3 -c ${BUILDOUT}
 before_script:
 - export DISPLAY=:99.0
 - sh -e /etc/init.d/xvfb start
-#before_script:
-#- gem install travis-artifacts
-#after_script:
-#- travis-artifacts upload --path parts/test
 script: bin/test
 env:
   matrix:
-  - BUILDOUT=travis.cfg
-  - BUILDOUT=travis-redis.cfg
-#  global:
-#  - ARTIFACTS_S3_BUCKET=example.product
-#  - ROBOT_BUILD_NUMBER=travis-$TRAVIS_BUILD_NUMBER
-#  - ROBOT_REMOTE_URL=http://$SAUCE_USERNAME:$SAUCE_ACCESS_KEY@ondemand.saucelabs.com:80/wd/hub
-#  matrix:
-#  - ROBOT_BROWSER=firefox ROBOT_DESIRED_CAPABILITIES=tunnel-identifier:$TRAVIS_JOB_NUMBER
+  - BUILDOUT=test-4.x.cfg
+  - BUILDOUT=test-5.x.cfg
+  - BUILDOUT=test-redis-4.x.cfg
+  - BUILDOUT=test-redis-5.x.cfg
