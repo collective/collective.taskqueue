@@ -17,6 +17,4 @@
       zcml:condition="not-have plone-5"
       />
 
-  <!--<include package=".tests" file="test_acceptance.zcml" />-->
-
 </configure>
