@@ -217,7 +217,7 @@ How Redis queueing works
 ------------------------
 
 1. ``taskqueue.add`` prepares a message, which will be pushed (``lpush``)
-   into key ``collective.taskqueue.%(queue)s`` (where `%(queue)s`` is the
+   into key ``collective.taskqueue.%(queue)s`` (where ``%(queue)s`` is the
    name of the queue) at the end of the transaction. If Redis connection is
    down during the transaction vote, the whole transaction is aborted.
 
