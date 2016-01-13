@@ -39,7 +39,8 @@ def configureTaskQueueAuthPlugin(context):
 
     if "taskauth" not in pas.objectIds():
         factory = pas.manage_addProduct["collective.taskqueue.pasplugin"]
-        factory.manage_addTaskQueueAuthPlugin(
+        taskauthplugin.manage_addTaskQueueAuthPlugin(
+            factory,
             "taskauth",
             "Task Queue PAS plugin"
         )
