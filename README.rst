@@ -113,13 +113,13 @@ exactly the the same way as the current request was authenticated.
 
 ``taskqueue.add`` returns uuid like id for the task, which can be used e.g. to
 track the task status later. Task id later provided as ``X-Task-Id`` header in
-the queued request.
+the queued request. You can get it in your task view with self.request.getHeader('X-Task-Id').
 
 More robust authentication can be implemented with a custom PAS-plugin.
 *collective.taskqueue* ships with an optionally installable PAS-plugin, which
 authenticates each request as the user who queued it. To achieve this,
 *collective.taskqueue* appends ``X-Task-User-Id``-header into the queued
-request.
+request. 
 
 Taskqueue API has been inspired by `Google AppEngine Task Queue API`__.
 
