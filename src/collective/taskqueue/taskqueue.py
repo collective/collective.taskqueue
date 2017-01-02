@@ -158,7 +158,7 @@ def make_task(url=None, method='GET', params=None, headers=None,
             headers[key] = value
 
     # Copy payload from re-seekable StringIO when not explicitly given:
-    if payload is _marker and type(request.stdin) is not file:
+    if payload is _marker and request.stdin is not None and type(request.stdin) is not file:  # noqa
         request.stdin.seek(0)
         payload = request.stdin.read()
         request.stdin.seek(0)
