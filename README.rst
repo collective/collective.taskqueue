@@ -119,7 +119,7 @@ More robust authentication can be implemented with a custom PAS-plugin.
 *collective.taskqueue* ships with an optionally installable PAS-plugin, which
 authenticates each request as the user who queued it. To achieve this,
 *collective.taskqueue* appends ``X-Task-User-Id``-header into the queued
-request. 
+request.
 
 Taskqueue API has been inspired by `Google AppEngine Task Queue API`__.
 
