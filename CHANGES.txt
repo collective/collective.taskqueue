@@ -4,15 +4,15 @@ Changelog
 0.8.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fix issue where got bool header value caused error on task creationg
+  [datakurre]
 
 0.8.1 (2017-01-02)
 ------------------
 
 - Fix issue where task queue request with method POST created from GET method
   failed because of empty payload in the original request
-  [Asko Soukka]
+  [datakurre]
 
 0.8.0 (2015-12-13)
 ------------------
