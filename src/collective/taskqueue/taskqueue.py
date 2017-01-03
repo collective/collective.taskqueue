@@ -173,11 +173,19 @@ def make_task(url=None, method='GET', params=None, headers=None,
     if bool(task_user_id):
         headers['X-Task-User-Id'] = task_user_id
 
+    def safe_str(s):
+        if isinstance(s, bool):
+            return str(s).lower()
+        elif isinstance(s, unicode):
+            return s.encode('utf-8', 'replace')
+        else:
+            return str(s)
+
     # Build task dictionary
     task = {
         'url': url,  # Physical /Plone/to/callable with optional querystring
         'method': method,  # GET or POST
-        'headers': ['{0:s}: {1:s}'.format(key, value)
+        'headers': ['{0:s}: {1:s}'.format(key, safe_str(value)
                     for key, value in sorted(headers.items())],
         'payload': payload
     }
