@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='collective.taskqueue',
-    version='0.8.2',
+    version='0.8.3.dev0',
     description='Asyncore-based asynchronous task queue for Plone',
     long_description=(open('README.rst').read() + '\n' +
                       open('CHANGES.txt').read()),
