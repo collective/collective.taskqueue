@@ -185,7 +185,7 @@ def make_task(url=None, method='GET', params=None, headers=None,
     task = {
         'url': url,  # Physical /Plone/to/callable with optional querystring
         'method': method,  # GET or POST
-        'headers': ['{0:s}: {1:s}'.format(key, safe_str(value)
+        'headers': ['{0:s}: {1:s}'.format(key, safe_str(value))
                     for key, value in sorted(headers.items())],
         'payload': payload
     }
