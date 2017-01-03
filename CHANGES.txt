@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.8.2 (unreleased)
+0.8.2 (2017-01-03)
 ------------------
 
 - Fix issue where got bool header value caused error on task creationg
