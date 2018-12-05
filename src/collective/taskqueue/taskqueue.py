@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-import urllib
+import six
 import urlparse
 import uuid
 
@@ -9,6 +9,7 @@ from Queue import Empty
 from Queue import Queue
 from collective.taskqueue.interfaces import ITaskQueue
 from plone.memoize import forever
+from six.moves.urllib.parse import urlencode
 from transaction import get as get_transaction
 from transaction.interfaces import ISavepoint
 from transaction.interfaces import ISavepointDataManager
@@ -126,7 +127,7 @@ class TaskQueuesVocabulary(object):
 
     def __call__(self, context=None):
         utilities = getUtilitiesFor(ITaskQueue)
-        items = [(unicode(name), queue) for name, queue in utilities]
+        items = [(name.decode('utf-8'), queue) for name, queue in utilities]
         return SimpleVocabulary.fromItems(items)
 
 
@@ -141,7 +142,7 @@ def make_task(url=None, method='GET', params=None, headers=None,
     if params:
         parts = list(urlparse.urlparse(url))
         parts[4] = '&'.join(filter(bool, [parts[4],  # 4 == query
-                                          urllib.urlencode(params)]))
+                                          urlencode(params)]))
         url = urlparse.urlunparse(parts)
 
     # Copy HTTP-headers from request._orig_env:
@@ -156,7 +157,7 @@ def make_task(url=None, method='GET', params=None, headers=None,
             headers[key] = value
 
     # Copy payload from re-seekable StringIO when not explicitly given:
-    if payload is _marker and request.stdin is not None and type(request.stdin) is not file:  # noqa
+    if payload is _marker and isinstance(request.stdin, six.BytesIO):
         request.stdin.seek(0)
         payload = request.stdin.read()
         request.stdin.seek(0)
@@ -174,7 +175,7 @@ def make_task(url=None, method='GET', params=None, headers=None,
     def safe_str(s):
         if isinstance(s, bool):
             return str(s).lower()
-        elif isinstance(s, unicode):
+        elif isinstance(s, six.text_type):
             return s.encode('utf-8', 'replace')
         else:
             return str(s)
