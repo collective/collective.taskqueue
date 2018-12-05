@@ -4,8 +4,8 @@ Changelog
 0.8.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- use `@implementer` decorator
+  [petschki]
 
 0.8.2 (2017-01-03)
 ------------------

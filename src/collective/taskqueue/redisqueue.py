@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-from App.config import getConfiguration
-
 import msgpack
-
-from plone.memoize import forever
-from zope.interface import implements
 import redis
 
+from App.config import getConfiguration
 from collective.taskqueue.interfaces import ITaskQueue
 from collective.taskqueue.taskqueue import TaskQueueBase
 from collective.taskqueue.taskqueue import TaskQueueTransactionDataManager
+from plone.memoize import forever
+from zope.interface import implementer
 
 
 class RedisTaskQueueTDM(TaskQueueTransactionDataManager):
@@ -19,9 +17,8 @@ class RedisTaskQueueTDM(TaskQueueTransactionDataManager):
         self.queue.redis.ping()
 
 
+@implementer(ITaskQueue)
 class RedisTaskQueue(TaskQueueBase):
-
-    implements(ITaskQueue)
 
     transaction_data_manager = RedisTaskQueueTDM
 

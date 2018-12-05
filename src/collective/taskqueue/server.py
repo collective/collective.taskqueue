@@ -1,28 +1,27 @@
 # -*- coding: utf-8 -*-
-import asyncore
-import os
-import time
-import socket
 import StringIO
-import posixpath
+import asyncore
 import logging
+import os
+import posixpath
+import socket
 import threading
+import time
 
-from ZServer.ClockServer import LogHelper
-from ZServer.PubCore.ZEvent import Wakeup
-from ZServer.medusa.http_server import http_request
-from ZServer.medusa.default_handler import unquote
-from ZServer.PubCore import handle
-from ZServer.HTTPResponse import make_response
 from ZPublisher.HTTPRequest import HTTPRequest
-from zope.component import getUtility
-from zope.component import ComponentLookupError
-from zope.interface import implements
-
-from collective.taskqueue.config import TASK_QUEUE_SERVER_IDENT
+from ZServer.ClockServer import LogHelper
+from ZServer.HTTPResponse import make_response
+from ZServer.PubCore import handle
+from ZServer.PubCore.ZEvent import Wakeup
+from ZServer.medusa.default_handler import unquote
+from ZServer.medusa.http_server import http_request
 from collective.taskqueue.config import HAS_REDIS
-from collective.taskqueue.interfaces import ITaskQueueLayer
+from collective.taskqueue.config import TASK_QUEUE_SERVER_IDENT
 from collective.taskqueue.interfaces import ITaskQueue
+from collective.taskqueue.interfaces import ITaskQueueLayer
+from zope.component import ComponentLookupError
+from zope.component import getUtility
+from zope.interface import implementer
 
 logger = logging.getLogger('collective.taskqueue')
 
@@ -222,9 +221,9 @@ def make_env(req, method='GET'):
     return env
 
 
+@implementer(ITaskQueueLayer)
 class TaskRequest(HTTPRequest):
-
-    implements(ITaskQueueLayer)
+    pass
 
 
 class TaskChannel(object):

@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging
+import urllib
+import urlparse
+import uuid
+
 from AccessControl import getSecurityManager
 from Queue import Empty
 from Queue import Queue
@@ -11,21 +16,17 @@ from zope.component import ComponentLookupError
 from zope.component import getUtilitiesFor
 from zope.component import getUtility
 from zope.globalrequest import getRequest
-from zope.interface import implements
+from zope.interface import implementer
 from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleVocabulary
-import logging
-import urllib
-import urlparse
-import uuid
 
 logger = logging.getLogger('collective.taskqueue')
 
 _marker = object()
 
 
+@implementer(ISavepoint)
 class DummySavepoint:
-    implements(ISavepoint)
 
     valid = property(lambda self: self.transaction is not None)
 
@@ -36,9 +37,8 @@ class DummySavepoint:
         pass
 
 
+@implementer(ISavepointDataManager)
 class TaskQueueTransactionDataManager(object):
-
-    implements(ISavepointDataManager)
 
     _COUNTER = 0
 
@@ -96,9 +96,8 @@ class TaskQueueBase(object):
         return task_id
 
 
+@implementer(ITaskQueue)
 class LocalVolatileTaskQueue(TaskQueueBase):
-
-    implements(ITaskQueue)
 
     def __init__(self, **kwargs):
         self.queue = Queue()
@@ -122,9 +121,8 @@ class LocalVolatileTaskQueue(TaskQueueBase):
         self.queue = Queue()
 
 
+@implementer(IVocabularyFactory)
 class TaskQueuesVocabulary(object):
-
-    implements(IVocabularyFactory)
 
     def __call__(self, context=None):
         utilities = getUtilitiesFor(ITaskQueue)
@@ -151,7 +149,7 @@ def make_task(url=None, method='GET', params=None, headers=None,
     for key, value in env.items():
         if key.startswith('HTTP_'):
             key = '-'.join(map(str.capitalize, key[5:].split('_')))
-            if key != 'User-Agent' and not key in headers:
+            if key != 'User-Agent' and key not in headers:
                 headers[key] = value
         elif key.startswith('CONTENT_') and payload is _marker:
             key = '-'.join(map(str.capitalize, key.split('_')))
@@ -185,8 +183,7 @@ def make_task(url=None, method='GET', params=None, headers=None,
     task = {
         'url': url,  # Physical /Plone/to/callable with optional querystring
         'method': method,  # GET or POST
-        'headers': ['{0:s}: {1:s}'.format(key, safe_str(value))
-                    for key, value in sorted(headers.items())],
+        'headers': ['{0:s}: {1:s}'.format(k, safe_str(v)) for k, v in sorted(headers.items())],  # noqa
         'payload': payload
     }
 
