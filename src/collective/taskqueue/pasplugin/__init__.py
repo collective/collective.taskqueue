@@ -5,13 +5,19 @@ from Products.CMFCore.interfaces import ISiteRoot
 from Products.CMFCore.utils import getToolByName
 from Products.PluggableAuthService.interfaces.plugins import (
     IExtractionPlugin,
-    IAuthenticationPlugin
+    IAuthenticationPlugin,
 )
-from Products.PlonePAS.Extensions.Install import activatePluginInterfaces
 from AccessControl.Permissions import add_user_folders
 from Products.PluggableAuthService import PluggableAuthService
 
 from collective.taskqueue.pasplugin import taskauthplugin
+
+try:
+    from Products.PlonePAS.Extensions.Install import activatePluginInterfaces
+except ModuleNotFoundError:
+    # python 3
+    from Products.PlonePAS.setuphandlers import activatePluginInterfaces
+
 
 PluggableAuthService.registerMultiPlugin(
     taskauthplugin.TaskQueueAuthPlugin.meta_type
@@ -24,9 +30,9 @@ def initialize(context):
         permission=add_user_folders,
         constructors=(
             taskauthplugin.manage_addTaskQueueAuthPluginForm,
-            taskauthplugin.manage_addTaskQueueAuthPlugin
+            taskauthplugin.manage_addTaskQueueAuthPlugin,
         ),
-        visibility=None
+        visibility=None,
     )
 
 
@@ -40,8 +46,7 @@ def configureTaskQueueAuthPlugin(context):
     if "taskauth" not in pas.objectIds():
         factory = pas.manage_addProduct["collective.taskqueue.pasplugin"]
         factory.manage_addTaskQueueAuthPlugin(
-            "taskauth",
-            "Task Queue PAS plugin"
+            "taskauth", "Task Queue PAS plugin"
         )
 
     activatePluginInterfaces(site, "taskauth")

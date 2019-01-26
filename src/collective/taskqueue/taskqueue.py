@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 from AccessControl import getSecurityManager
-from Queue import Empty
-from Queue import Queue
 from collective.taskqueue.interfaces import ITaskQueue
 from plone.memoize import forever
 from transaction import get as get_transaction
@@ -11,21 +9,34 @@ from zope.component import ComponentLookupError
 from zope.component import getUtilitiesFor
 from zope.component import getUtility
 from zope.globalrequest import getRequest
-from zope.interface import implements
+from zope.interface import implementer
 from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleVocabulary
+
 import logging
 import urllib
-import urlparse
 import uuid
+
+try:
+    import urlparse
+except ImportError:
+    from urllib.parse import urlparse
+
+
+try:
+    from Queue import Empty
+    from Queue import Queue
+except ImportError:
+    from queue import Empty
+    from queue import Queue
 
 logger = logging.getLogger('collective.taskqueue')
 
 _marker = object()
 
 
+@implementer(ISavepoint)
 class DummySavepoint:
-    implements(ISavepoint)
 
     valid = property(lambda self: self.transaction is not None)
 
@@ -36,9 +47,8 @@ class DummySavepoint:
         pass
 
 
+@implementer(ISavepointDataManager)
 class TaskQueueTransactionDataManager(object):
-
-    implements(ISavepointDataManager)
 
     _COUNTER = 0
 
@@ -47,7 +57,8 @@ class TaskQueueTransactionDataManager(object):
         self.task = task
 
         self.sort_key = '~collective.taskqueue.{0:d}'.format(
-            TaskQueueTransactionDataManager._COUNTER)
+            TaskQueueTransactionDataManager._COUNTER
+        )
         TaskQueueTransactionDataManager._COUNTER += 1
 
     def commit(self, t):
@@ -82,24 +93,24 @@ class TaskQueueBase(object):
     @property
     @forever.memoize
     def name(self):
-        vocabulary =\
-            getUtility(IVocabularyFactory, 'collective.taskqueue.queues')()
+        vocabulary = getUtility(
+            IVocabularyFactory, 'collective.taskqueue.queues'
+        )()
         for term in vocabulary:
             if term.value == self:
                 return term.token
         return None
 
-    def add(self, url=None, method='GET', params=None, headers=None,
-            payload=_marker):
+    def add(
+        self, url=None, method='GET', params=None, headers=None, payload=_marker
+    ):
         task_id, task = make_task(url, method, params, headers, payload)
         get_transaction().join(self.transaction_data_manager(self, task))
         return task_id
 
 
+@implementer(ITaskQueue)
 class LocalVolatileTaskQueue(TaskQueueBase):
-
-    implements(ITaskQueue)
-
     def __init__(self, **kwargs):
         self.queue = Queue()
 
@@ -122,18 +133,17 @@ class LocalVolatileTaskQueue(TaskQueueBase):
         self.queue = Queue()
 
 
+@implementer(IVocabularyFactory)
 class TaskQueuesVocabulary(object):
-
-    implements(IVocabularyFactory)
-
     def __call__(self, context=None):
         utilities = getUtilitiesFor(ITaskQueue)
         items = [(unicode(name), queue) for name, queue in utilities]
         return SimpleVocabulary.fromItems(items)
 
 
-def make_task(url=None, method='GET', params=None, headers=None,
-              payload=_marker):
+def make_task(
+    url=None, method='GET', params=None, headers=None, payload=_marker
+):
     assert url, 'Url not given'
 
     request = getRequest()
@@ -142,8 +152,9 @@ def make_task(url=None, method='GET', params=None, headers=None,
 
     if params:
         parts = list(urlparse.urlparse(url))
-        parts[4] = '&'.join(filter(bool, [parts[4],  # 4 == query
-                                          urllib.urlencode(params)]))
+        parts[4] = '&'.join(
+            filter(bool, [parts[4], urllib.urlencode(params)])  # 4 == query
+        )
         url = urlparse.urlunparse(parts)
 
     # Copy HTTP-headers from request._orig_env:
@@ -158,7 +169,11 @@ def make_task(url=None, method='GET', params=None, headers=None,
             headers[key] = value
 
     # Copy payload from re-seekable StringIO when not explicitly given:
-    if payload is _marker and request.stdin is not None and type(request.stdin) is not file:  # noqa
+    if (
+        payload is _marker
+        and request.stdin is not None
+        and type(request.stdin) is not file
+    ):  # noqa
         request.stdin.seek(0)
         payload = request.stdin.read()
         request.stdin.seek(0)
@@ -185,19 +200,26 @@ def make_task(url=None, method='GET', params=None, headers=None,
     task = {
         'url': url,  # Physical /Plone/to/callable with optional querystring
         'method': method,  # GET or POST
-        'headers': ['{0:s}: {1:s}'.format(key, safe_str(value))
-                    for key, value in sorted(headers.items())],
-        'payload': payload
+        'headers': [
+            '{0:s}: {1:s}'.format(key, safe_str(value))
+            for key, value in sorted(headers.items())
+        ],
+        'payload': payload,
     }
 
     return headers['X-Task-Id'], task
 
 
-def add(url=None, method='GET', params=None, headers=None, payload=_marker,
-        queue=_marker):
+def add(
+    url=None,
+    method='GET',
+    params=None,
+    headers=None,
+    payload=_marker,
+    queue=_marker,
+):
 
-    vocabulary =\
-        getUtility(IVocabularyFactory, "collective.taskqueue.queues")()
+    vocabulary = getUtility(IVocabularyFactory, "collective.taskqueue.queues")()
     assert len(vocabulary), u"No task queues defined. Cannot queue task."
     fallback = sorted(tuple(vocabulary.by_token))[0]
 
@@ -206,9 +228,11 @@ def add(url=None, method='GET', params=None, headers=None, payload=_marker,
     try:
         task_queue = getUtility(ITaskQueue, name=queue)
     except ComponentLookupError:
-        logger.warning("TaskQueue '%s' not found. "
-                       "Adding to '%s' queue instead.",
-                       queue, fallback)
+        logger.warning(
+            "TaskQueue '%s' not found. " "Adding to '%s' queue instead.",
+            queue,
+            fallback,
+        )
         task_queue = getUtility(ITaskQueue, name=fallback)
 
     return task_queue.add(url, method, params, headers, payload)
@@ -216,8 +240,7 @@ def add(url=None, method='GET', params=None, headers=None, payload=_marker,
 
 def reset(queue=_marker):
 
-    vocabulary = \
-        getUtility(IVocabularyFactory, "collective.taskqueue.queues")()
+    vocabulary = getUtility(IVocabularyFactory, "collective.taskqueue.queues")()
     assert len(vocabulary), u"No task queues defined. Cannot reset queue."
     fallback = sorted(tuple(vocabulary.by_token))[0]
 
@@ -226,8 +249,10 @@ def reset(queue=_marker):
     try:
         task_queue = getUtility(ITaskQueue, name=queue)
     except ComponentLookupError:
-        logger.warning("TaskQueue '%s' not found. "
-                       "Resetting queue '%s' instead.",
-                       queue, fallback)
+        logger.warning(
+            "TaskQueue '%s' not found. " "Resetting queue '%s' instead.",
+            queue,
+            fallback,
+        )
         task_queue = getUtility(ITaskQueue, name=fallback)
     task_queue.reset()

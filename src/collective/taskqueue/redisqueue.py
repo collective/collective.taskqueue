@@ -4,7 +4,7 @@ from App.config import getConfiguration
 import msgpack
 
 from plone.memoize import forever
-from zope.interface import implements
+from zope.interface import implementer
 import redis
 
 from collective.taskqueue.interfaces import ITaskQueue
@@ -13,15 +13,13 @@ from collective.taskqueue.taskqueue import TaskQueueTransactionDataManager
 
 
 class RedisTaskQueueTDM(TaskQueueTransactionDataManager):
-
     def tpc_vote(self, t):
         # Vote 'no' by raising ConnectionError if Redis is down:
         self.queue.redis.ping()
 
 
+@implementer(ITaskQueue)
 class RedisTaskQueue(TaskQueueBase):
-
-    implements(ITaskQueue)
 
     transaction_data_manager = RedisTaskQueueTDM
 
