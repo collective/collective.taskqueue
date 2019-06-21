@@ -12,10 +12,10 @@ from zope.globalrequest import getRequest
 from zope.interface import implementer
 from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleVocabulary
-
 import logging
 import urllib
 import uuid
+
 
 try:
     import urlparse
@@ -30,7 +30,7 @@ except ImportError:
     from queue import Empty
     from queue import Queue
 
-logger = logging.getLogger('collective.taskqueue')
+logger = logging.getLogger("collective.taskqueue")
 
 _marker = object()
 
@@ -56,7 +56,7 @@ class TaskQueueTransactionDataManager(object):
         self.queue = queue
         self.task = task
 
-        self.sort_key = '~collective.taskqueue.{0:d}'.format(
+        self.sort_key = "~collective.taskqueue.{0:d}".format(
             TaskQueueTransactionDataManager._COUNTER
         )
         TaskQueueTransactionDataManager._COUNTER += 1
@@ -93,17 +93,13 @@ class TaskQueueBase(object):
     @property
     @forever.memoize
     def name(self):
-        vocabulary = getUtility(
-            IVocabularyFactory, 'collective.taskqueue.queues'
-        )()
+        vocabulary = getUtility(IVocabularyFactory, "collective.taskqueue.queues")()
         for term in vocabulary:
             if term.value == self:
                 return term.token
         return None
 
-    def add(
-        self, url=None, method='GET', params=None, headers=None, payload=_marker
-    ):
+    def add(self, url=None, method="GET", params=None, headers=None, payload=_marker):
         task_id, task = make_task(url, method, params, headers, payload)
         get_transaction().join(self.transaction_data_manager(self, task))
         return task_id
@@ -141,10 +137,8 @@ class TaskQueuesVocabulary(object):
         return SimpleVocabulary.fromItems(items)
 
 
-def make_task(
-    url=None, method='GET', params=None, headers=None, payload=_marker
-):
-    assert url, 'Url not given'
+def make_task(url=None, method="GET", params=None, headers=None, payload=_marker):
+    assert url, "Url not given"
 
     request = getRequest()
     headers = headers or {}
@@ -152,20 +146,20 @@ def make_task(
 
     if params:
         parts = list(urlparse.urlparse(url))
-        parts[4] = '&'.join(
+        parts[4] = "&".join(
             filter(bool, [parts[4], urllib.urlencode(params)])  # 4 == query
         )
         url = urlparse.urlunparse(parts)
 
     # Copy HTTP-headers from request._orig_env:
-    env = (getattr(request, '_orig_env', None) or {}).copy()
+    env = (getattr(request, "_orig_env", None) or {}).copy()
     for key, value in env.items():
-        if key.startswith('HTTP_'):
-            key = '-'.join(map(str.capitalize, key[5:].split('_')))
-            if key != 'User-Agent' and not key in headers:
+        if key.startswith("HTTP_"):
+            key = "-".join(map(str.capitalize, key[5:].split("_")))
+            if key != "User-Agent" and not key in headers:
                 headers[key] = value
-        elif key.startswith('CONTENT_') and payload is _marker:
-            key = '-'.join(map(str.capitalize, key.split('_')))
+        elif key.startswith("CONTENT_") and payload is _marker:
+            key = "-".join(map(str.capitalize, key.split("_")))
             headers[key] = value
 
     # Copy payload from re-seekable StringIO when not explicitly given:
@@ -178,45 +172,40 @@ def make_task(
         payload = request.stdin.read()
         request.stdin.seek(0)
     elif payload is _marker:
-        payload = ''
+        payload = ""
 
     # Set special X-Task-Id -header to identify each message
-    headers['X-Task-Id'] = str(uuid.uuid4())
+    headers["X-Task-Id"] = str(uuid.uuid4())
 
     # Set special X-Task-User-Id -header for Task Queue PAS plugin
     task_user_id = getSecurityManager().getUser().getId()
     if bool(task_user_id):
-        headers['X-Task-User-Id'] = task_user_id
+        headers["X-Task-User-Id"] = task_user_id
 
     def safe_str(s):
         if isinstance(s, bool):
             return str(s).lower()
         elif isinstance(s, unicode):
-            return s.encode('utf-8', 'replace')
+            return s.encode("utf-8", "replace")
         else:
             return str(s)
 
     # Build task dictionary
     task = {
-        'url': url,  # Physical /Plone/to/callable with optional querystring
-        'method': method,  # GET or POST
-        'headers': [
-            '{0:s}: {1:s}'.format(key, safe_str(value))
+        "url": url,  # Physical /Plone/to/callable with optional querystring
+        "method": method,  # GET or POST
+        "headers": [
+            "{0:s}: {1:s}".format(key, safe_str(value))
             for key, value in sorted(headers.items())
         ],
-        'payload': payload,
+        "payload": payload,
     }
 
-    return headers['X-Task-Id'], task
+    return headers["X-Task-Id"], task
 
 
 def add(
-    url=None,
-    method='GET',
-    params=None,
-    headers=None,
-    payload=_marker,
-    queue=_marker,
+    url=None, method="GET", params=None, headers=None, payload=_marker, queue=_marker
 ):
 
     vocabulary = getUtility(IVocabularyFactory, "collective.taskqueue.queues")()

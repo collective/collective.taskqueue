@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
+from AccessControl.Permissions import add_user_folders
 from Acquisition import aq_base
-from zope.component import getUtility
+from collective.taskqueue.pasplugin import taskauthplugin
 from Products.CMFCore.interfaces import ISiteRoot
 from Products.CMFCore.utils import getToolByName
-from Products.PluggableAuthService.interfaces.plugins import (
-    IExtractionPlugin,
-    IAuthenticationPlugin,
-)
-from AccessControl.Permissions import add_user_folders
 from Products.PluggableAuthService import PluggableAuthService
+from Products.PluggableAuthService.interfaces.plugins import IAuthenticationPlugin
+from Products.PluggableAuthService.interfaces.plugins import IExtractionPlugin
+from zope.component import getUtility
 
-from collective.taskqueue.pasplugin import taskauthplugin
 
 try:
     from Products.PlonePAS.Extensions.Install import activatePluginInterfaces
@@ -19,9 +17,7 @@ except ModuleNotFoundError:
     from Products.PlonePAS.setuphandlers import activatePluginInterfaces
 
 
-PluggableAuthService.registerMultiPlugin(
-    taskauthplugin.TaskQueueAuthPlugin.meta_type
-)
+PluggableAuthService.registerMultiPlugin(taskauthplugin.TaskQueueAuthPlugin.meta_type)
 
 
 def initialize(context):
@@ -45,9 +41,7 @@ def configureTaskQueueAuthPlugin(context):
 
     if "taskauth" not in pas.objectIds():
         factory = pas.manage_addProduct["collective.taskqueue.pasplugin"]
-        factory.manage_addTaskQueueAuthPlugin(
-            "taskauth", "Task Queue PAS plugin"
-        )
+        factory.manage_addTaskQueueAuthPlugin("taskauth", "Task Queue PAS plugin")
 
     activatePluginInterfaces(site, "taskauth")
 

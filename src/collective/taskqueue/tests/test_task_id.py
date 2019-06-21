@@ -1,48 +1,43 @@
 # -*- coding: utf-8 -*-
-import Queue
-import logging
-import unittest
-
-from plone.testing import z2
-import transaction
-from zope.component import getUtility
-from zope.testing.loggingsupport import InstalledHandler
-
 from collective.taskqueue import taskqueue
 from collective.taskqueue.interfaces import ITaskQueue
-from collective.taskqueue.testing import (
-    LocalTaskQueueServerLayer,
-    runAsyncTest
-)
+from collective.taskqueue.testing import LocalTaskQueueServerLayer
+from collective.taskqueue.testing import runAsyncTest
+from plone.testing import z2
+from zope.component import getUtility
+from zope.testing.loggingsupport import InstalledHandler
+import logging
+import Queue
+import transaction
+import unittest
 
 
-logger = logging.getLogger('collective.taskqueue')
+logger = logging.getLogger("collective.taskqueue")
 
 
 class TaskIdLoggingTaskQueueServerLayer(LocalTaskQueueServerLayer):
-
     def setUp(self):
         super(TaskIdLoggingTaskQueueServerLayer, self).setUp()
 
         def logging_handler(app, request, response):
             logger.info(request.getHeader("X-Task-Id"))
-            response.stdout.write('HTTP/1.1 204\r\n')
+            response.stdout.write("HTTP/1.1 204\r\n")
             response.stdout.close()
 
-        self['server'].handler = logging_handler
+        self["server"].handler = logging_handler
 
 
-TASK_QUEUE_FIXTURE = TaskIdLoggingTaskQueueServerLayer(queue='test-queue')
+TASK_QUEUE_FIXTURE = TaskIdLoggingTaskQueueServerLayer(queue="test-queue")
 
 TASK_QUEUE_FUNCTIONAL_TESTING = z2.FunctionalTesting(
-    bases=(TASK_QUEUE_FIXTURE,),
-    name='TaskQueue:Functional')
+    bases=(TASK_QUEUE_FIXTURE,), name="TaskQueue:Functional"
+)
 
 
 class TestLocalVolatileTaskQueue(unittest.TestCase):
 
     layer = TASK_QUEUE_FUNCTIONAL_TESTING
-    queue = 'test-queue'
+    queue = "test-queue"
 
     @property
     def task_queue(self):
@@ -65,4 +60,3 @@ class TestLocalVolatileTaskQueue(unittest.TestCase):
         runAsyncTest(self._testConsumeFromQueue)
         messages = [record.getMessage() for record in handler.records]
         self.assertEqual(messages[-2:], [a, b])
-

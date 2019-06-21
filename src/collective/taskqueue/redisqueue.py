@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 from App.config import getConfiguration
-
-import msgpack
-
-from plone.memoize import forever
-from zope.interface import implementer
-import redis
-
 from collective.taskqueue.interfaces import ITaskQueue
 from collective.taskqueue.taskqueue import TaskQueueBase
 from collective.taskqueue.taskqueue import TaskQueueTransactionDataManager
+from plone.memoize import forever
+from zope.interface import implementer
+import msgpack
+import redis
 
 
 class RedisTaskQueueTDM(TaskQueueTransactionDataManager):
@@ -28,13 +25,13 @@ class RedisTaskQueue(TaskQueueBase):
         self.pubsub = self.redis.pubsub()  # Create pubsub for notifications
         self._requeued_processing = False  # Requeue old processing on start
 
-        if getattr(getConfiguration(), 'debug_mode', False):
+        if getattr(getConfiguration(), "debug_mode", False):
             self.redis.ping()  # Ensure Zope startup to crash when Redis down
 
     @property
     @forever.memoize
     def redis_key(self):
-        return 'collective.taskqueue.{0:s}'.format(self.name)
+        return "collective.taskqueue.{0:s}".format(self.name)
 
     def __len__(self):
         try:
@@ -53,10 +50,10 @@ class RedisTaskQueue(TaskQueueBase):
 
     def put(self, task):
         self.redis.lpush(self.redis_key, self.serialize(task))
-        self.redis.publish(self.redis_key, 'lpush')  # Send event
+        self.redis.publish(self.redis_key, "lpush")  # Send event
 
     def get(self, consumer_name):
-        consumer_key = '{0:s}.{1:s}'.format(self.redis_key, consumer_name)
+        consumer_key = "{0:s}.{1:s}".format(self.redis_key, consumer_name)
 
         if not self._requeued_processing:
             self._requeue_processing(consumer_name)
@@ -67,23 +64,23 @@ class RedisTaskQueue(TaskQueueBase):
         return self.deserialize(msg)
 
     def task_done(self, task, status_line, consumer_name, consumer_length):
-        consumer_key = '{0:s}.{1:s}'.format(self.redis_key, consumer_name)
+        consumer_key = "{0:s}.{1:s}".format(self.redis_key, consumer_name)
 
         self.redis.lrem(consumer_key, -1, self.serialize(task))
         if consumer_length == 0 and int(self.redis.llen(consumer_key)):
             self._requeue_processing(consumer_name)
 
     def _requeue_processing(self, consumer_name):
-        consumer_key = '{0:s}.{1:s}'.format(self.redis_key, consumer_name)
+        consumer_key = "{0:s}.{1:s}".format(self.redis_key, consumer_name)
 
         try:
             while self.redis.llen(consumer_key) > 0:
                 self.redis.rpoplpush(consumer_key, self.redis_key)
-            self.redis.publish(self.redis_key, 'rpoplpush')  # Send event
+            self.redis.publish(self.redis_key, "rpoplpush")  # Send event
             self._requeued_processing = True
         except redis.ConnectionError:
             pass
 
     def reset(self):
-        for key in self.redis.keys(self.redis_key + '*'):
+        for key in self.redis.keys(self.redis_key + "*"):
             self.redis.ltrim(key, 1, 0)

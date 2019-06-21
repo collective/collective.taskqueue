@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from zope.interface import Interface
 from zope.interface import Attribute
+from zope.interface import Interface
 
 
 class ITaskQueue(Interface):

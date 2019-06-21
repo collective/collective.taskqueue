@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
-import Queue
-import transaction
-import unittest2 as unittest
-from zope.component import getUtility
-from zope.testing.loggingsupport import InstalledHandler
-
+from collective.taskqueue import taskqueue
 from collective.taskqueue.interfaces import ITaskQueue
 from collective.taskqueue.testing import runAsyncTest
 from collective.taskqueue.testing import TASK_QUEUE_FUNCTIONAL_TESTING
-from collective.taskqueue import taskqueue
+from zope.component import getUtility
+from zope.testing.loggingsupport import InstalledHandler
+import Queue
+import transaction
+import unittest2 as unittest
 
 
 class TestLocalVolatileTaskQueue(unittest.TestCase):
 
     layer = TASK_QUEUE_FUNCTIONAL_TESTING
-    queue = 'test-queue'
+    queue = "test-queue"
 
     @property
     def task_queue(self):
@@ -53,8 +52,7 @@ class TestLocalVolatileTaskQueue(unittest.TestCase):
         handler = InstalledHandler("collective.taskqueue")
         runAsyncTest(self._testConsumeFromQueue)
         messages = [record.getMessage() for record in handler.records]
-        self.assertEqual(messages[-2:],
-                         ["http://nohost:/", "http://nohost:/Plone"])
+        self.assertEqual(messages[-2:], ["http://nohost:/", "http://nohost:/Plone"])
 
     def testConsume100FromQueue(self):
         self.assertEqual(len(self.task_queue), 0)
