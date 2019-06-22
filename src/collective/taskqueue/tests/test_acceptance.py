@@ -126,7 +126,7 @@ class TaskQueueEmailForm(form.Form):
             return False
         path = "/".join(self.context.getPhysicalPath())
         for i in range(data["amount"]):
-            taskqueue.add("/{0:s}/send-email-view".format(path), method="POST")
+            taskqueue.add("{0:s}/send-email-view".format(path), method="POST")
         plone_utils = getToolByName(self.context, "plone_utils")
         plone_utils.addPortalMessage("Queued {0:d} new email(s)".format(data["amount"]))
 

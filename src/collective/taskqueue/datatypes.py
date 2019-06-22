@@ -50,7 +50,7 @@ class TaskQueueFactory(object):
         return self.server_name
 
     def create(self):
-        if not "." in self.type:
+        if "." not in self.type:
             mod = __import__("collective.taskqueue", fromlist=[self.type])
             klass = getattr(mod, self.type)
         else:

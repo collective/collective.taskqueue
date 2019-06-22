@@ -1,26 +1,35 @@
 # -*- coding: utf-8 -*-
 from AccessControl import getSecurityManager
 from collective.taskqueue.interfaces import ITaskQueue
-from plone.memoize import forever
+from io import IOBase
 from transaction import get as get_transaction
 from transaction.interfaces import ISavepoint
 from transaction.interfaces import ISavepointDataManager
+from twisted.application.service import Service
+from twisted.internet import reactor
+from twisted.internet.defer import DeferredQueue
+from twisted.internet.defer import QueueUnderflow
 from zope.component import ComponentLookupError
 from zope.component import getUtilitiesFor
 from zope.component import getUtility
+from zope.component import queryUtility
 from zope.globalrequest import getRequest
 from zope.interface import implementer
 from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleVocabulary
 import logging
-import urllib
+import six
 import uuid
 
 
 try:
-    import urlparse
+    from urllib import urlencode
+    from urlparse import urlparse
+    from urlparse import urlunparse
 except ImportError:
+    from urllib.parse import urlencode
     from urllib.parse import urlparse
+    from urllib.parse import urlunparse
 
 
 try:
@@ -86,18 +95,25 @@ class TaskQueueTransactionDataManager(object):
         return DummySavepoint(self)
 
 
-class TaskQueueBase(object):
+class TaskQueueBase(Service):
 
     transaction_data_manager = TaskQueueTransactionDataManager
 
+    _name = None
+
     @property
-    @forever.memoize
     def name(self):
-        vocabulary = getUtility(IVocabularyFactory, "collective.taskqueue.queues")()
-        for term in vocabulary:
-            if term.value == self:
-                return term.token
-        return None
+        # This looks complex, but ZCA registry is the single source of truth here
+        factory = queryUtility(IVocabularyFactory, "collective.taskqueue.queues")
+        if factory is not None:
+            vocabulary = factory()
+            for term in vocabulary:
+                if term.value == self:
+                    self._name = term.token
+        return self._name
+
+    def setName(self, name):
+        raise RuntimeError("Name is read-only.")
 
     def add(self, url=None, method="GET", params=None, headers=None, payload=_marker):
         task_id, task = make_task(url, method, params, headers, payload)
@@ -108,32 +124,33 @@ class TaskQueueBase(object):
 @implementer(ITaskQueue)
 class LocalVolatileTaskQueue(TaskQueueBase):
     def __init__(self, **kwargs):
-        self.queue = Queue()
+        self.queue = DeferredQueue()
 
     def __len__(self):
-        return self.queue.qsize()
+        return len(self.queue.pending)
 
     def put(self, task):
-        self.queue.put(task, block=True)
+        reactor.callFromThread(self.queue.put, task)
 
     def get(self, *args, **kwargs):
         try:
-            return self.queue.get(block=False)
-        except Empty:
+            return self.queue.get()
+        except QueueUnderflow:
             return None
 
     def task_done(self, *args, **kwargs):
-        self.queue.task_done()
+        pass
 
     def reset(self):
-        self.queue = Queue()
+        self.queue.waiting = []
+        self.queue.pending = []
 
 
 @implementer(IVocabularyFactory)
 class TaskQueuesVocabulary(object):
     def __call__(self, context=None):
         utilities = getUtilitiesFor(ITaskQueue)
-        items = [(unicode(name), queue) for name, queue in utilities]
+        items = [(six.text_type(name), queue) for name, queue in utilities]
         return SimpleVocabulary.fromItems(items)
 
 
@@ -145,11 +162,9 @@ def make_task(url=None, method="GET", params=None, headers=None, payload=_marker
     params = params or {}
 
     if params:
-        parts = list(urlparse.urlparse(url))
-        parts[4] = "&".join(
-            filter(bool, [parts[4], urllib.urlencode(params)])  # 4 == query
-        )
-        url = urlparse.urlunparse(parts)
+        parts = list(urlparse(url))
+        parts[4] = "&".join([part for part in [parts[4], urlencode(params)] if part])
+        url = urlunparse(parts)
 
     # Copy HTTP-headers from request._orig_env:
     env = (getattr(request, "_orig_env", None) or {}).copy()
@@ -162,17 +177,15 @@ def make_task(url=None, method="GET", params=None, headers=None, payload=_marker
             key = "-".join(map(str.capitalize, key.split("_")))
             headers[key] = value
 
-    # Copy payload from re-seekable StringIO when not explicitly given:
-    if (
-        payload is _marker
-        and request.stdin is not None
-        and type(request.stdin) is not file
-    ):  # noqa
-        request.stdin.seek(0)
-        payload = request.stdin.read()
-        request.stdin.seek(0)
-    elif payload is _marker:
-        payload = ""
+    # Copy payload from re-seekable BytesIO when not explicitly given:
+    if payload is _marker:
+        payload = b""
+        stdin = getattr(request, "stdin", None)
+        stdin = getattr(stdin, "_wrapped", stdin)  # _InputStream
+        if hasattr(stdin, "seek") and hasattr(stdin, "read"):
+            stdin.seek(0)
+            payload = stdin.read()
+            stdin.seek(0)
 
     # Set special X-Task-Id -header to identify each message
     headers["X-Task-Id"] = str(uuid.uuid4())
@@ -185,12 +198,11 @@ def make_task(url=None, method="GET", params=None, headers=None, payload=_marker
     def safe_str(s):
         if isinstance(s, bool):
             return str(s).lower()
-        elif isinstance(s, unicode):
+        elif isinstance(s, six.text_type) and not isinstance(s, str):
             return s.encode("utf-8", "replace")
         else:
             return str(s)
 
-    # Build task dictionary
     task = {
         "url": url,  # Physical /Plone/to/callable with optional querystring
         "method": method,  # GET or POST
