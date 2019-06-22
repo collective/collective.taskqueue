@@ -55,6 +55,18 @@ self: super: {
       sha256 = "0sngd9mwp2px1rdg3nr42xx6vmb3anpdma91jzrk3c9776d1i5zp";
     };
   };
+  "Automat" = super.buildPythonPackage {
+    name = "Automat-0.7.0";
+    doCheck = false;
+    propagatedBuildInputs = [
+      self."attrs"
+      self."six"
+    ];
+    src = fetchurl {
+      url = "https://files.pythonhosted.org/packages/4a/4f/64db3ffda8828cb0541fe949354615f39d02f596b4c33fb74863756fc565/Automat-0.7.0.tar.gz";
+      sha256 = "03ivg70n3b1cbcd2zvjhk8y4kmqxcvhmili39lmgx09dza1qpmyb";
+    };
+  };
   "BTrees" = super.buildPythonPackage {
     name = "BTrees-4.5.1";
     doCheck = false;
@@ -860,6 +872,18 @@ self: super: {
       sha256 = "1w19ipr21k59cmp2p8cy0h081qykq8l2d19km0rkmgq4d0ia2wm1";
     };
   };
+  "PyHamcrest" = super.buildPythonPackage {
+    name = "PyHamcrest-1.9.0";
+    doCheck = false;
+    propagatedBuildInputs = [
+      self."setuptools"
+      self."six"
+    ];
+    src = fetchurl {
+      url = "https://files.pythonhosted.org/packages/a4/89/a469aad9256aedfbb47a29ec2b2eeb855d9f24a7a4c2ff28bd8d1042ef02/PyHamcrest-1.9.0.tar.gz";
+      sha256 = "1kan3nyxs1dz333s7mfvjj47l8j6qxd1imyf2kg8jzm57njs1ylg";
+    };
+  };
   "PyJWT" = super.buildPythonPackage {
     name = "PyJWT-1.7.1";
     doCheck = false;
@@ -1283,6 +1307,14 @@ self: super: {
       sha256 = "0ba247bx5pc60hcpbf3rjsqk0whilg241i9qdfnlcwij5qgdgvh5";
     };
   };
+  "constantly" = super.buildPythonPackage {
+    name = "constantly-15.1.0";
+    doCheck = false;
+    src = fetchurl {
+      url = "https://files.pythonhosted.org/packages/95/f1/207a0a478c4bb34b1b49d5915e2db574cadc415c9ac3a7ef17e29b2e8951/constantly-15.1.0.tar.gz";
+      sha256 = "0dgwdla5kfpqz83hfril716inm41hgn9skxskvi77605jbmp4qsq";
+    };
+  };
   "coverage" = super.buildPythonPackage {
     name = "coverage-4.5.2";
     doCheck = false;
@@ -1458,6 +1490,17 @@ self: super: {
       sha256 = "1f2rlqn9rh7adgir52dlbqz69gsab44x0mlm8gf1cs7xvhv54137";
     };
   };
+  "hyperlink" = super.buildPythonPackage {
+    name = "hyperlink-19.0.0";
+    doCheck = false;
+    propagatedBuildInputs = [
+      self."idna"
+    ];
+    src = fetchurl {
+      url = "https://files.pythonhosted.org/packages/e0/46/1451027b513a75edf676d25a47f601ca00b06a6a7a109e5644d921e7462d/hyperlink-19.0.0.tar.gz";
+      sha256 = "0m2nhi0j8wmgfscf974wd5v1xfq8mah286hil6npy1ys0m3y7222";
+    };
+  };
   "i18ndude" = super.buildPythonPackage {
     name = "i18ndude-5.3.0";
     doCheck = false;
@@ -1490,6 +1533,14 @@ self: super: {
     src = fetchurl {
       url = "https://files.pythonhosted.org/packages/ad/13/eb56951b6f7950cadb579ca166e448ba77f9d24efc03edd7e55fa57d04b7/idna-2.8.tar.gz";
       sha256 = "01rlkigdxg17sf9yar1jl8n18ls59367wqh59hnawlyg53vb6my3";
+    };
+  };
+  "incremental" = super.buildPythonPackage {
+    name = "incremental-17.5.0";
+    doCheck = false;
+    src = fetchurl {
+      url = "https://files.pythonhosted.org/packages/8f/26/02c4016aa95f45479eea37c90c34f8fab6775732ae62587a874b619ca097/incremental-17.5.0.tar.gz";
+      sha256 = "1cylxdz1cnkm5g3pklna3h2n0i0rks95ir1pnpxfnvpkmab1cxbv";
     };
   };
   "isort" = super.buildPythonPackage {
@@ -3772,6 +3823,23 @@ self: super: {
     src = fetchurl {
       url = "https://files.pythonhosted.org/packages/e1/af/4f5bfaa8e9c0ddce229b058a4ebdc11a6e05e9c2e51b854d1d0e8f764d09/twine-1.13.0.tar.gz";
       sha256 = "1p0lbgzz14i00g7a9x8rw5q5fpbwz2hkm8cz3ndlxiyg7s9rrhnn";
+    };
+  };
+  "twisted" = super.buildPythonPackage {
+    name = "twisted-19.2.1";
+    doCheck = false;
+    propagatedBuildInputs = [
+      self."Automat"
+      self."PyHamcrest"
+      self."attrs"
+      self."constantly"
+      self."hyperlink"
+      self."incremental"
+      self."zope.interface"
+    ];
+    src = fetchurl {
+      url = "https://files.pythonhosted.org/packages/79/59/035de19362320e632301ed7bbde23e4c8cd6fc5e2f1cf8d354cdba857854/Twisted-19.2.1.tar.bz2";
+      sha256 = "0liymyd4pzphizjlpwkncxjpm9akyr3lkfkm77yfg6wasv108b7s";
     };
   };
   "typed-ast" = super.buildPythonPackage {

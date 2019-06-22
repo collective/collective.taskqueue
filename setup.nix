@@ -36,8 +36,13 @@ let overrides = self: super: {
     doCheck = false;
   });
 
-  "scimschema" = super."scimschema".overridePythonAttrs(old: {
-    buildInputs = [ self."pytest-runner" ];
+  "twisted" = super."twisted".overridePythonAttrs(old: {
+    nativeBuildInputs = [
+      self."attrs"
+      self."constantly"
+      self."incremental"
+      self."zope.interface"
+    ];
   });
 
   # TODO: add to setup.nix default overrides
@@ -104,6 +109,7 @@ in setup {
   buildInputs = with pkgs; [
     firefox
     geckodriver
+    redis
   ];
   force = true;
   shellHook = ''
