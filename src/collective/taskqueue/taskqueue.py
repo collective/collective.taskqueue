@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
+import logging
+import six
+import urlparse
+import uuid
+
 from AccessControl import getSecurityManager
 from Queue import Empty
 from Queue import Queue
 from collective.taskqueue.interfaces import ITaskQueue
 from plone.memoize import forever
+from six.moves.urllib.parse import urlencode
 from transaction import get as get_transaction
 from transaction.interfaces import ISavepoint
 from transaction.interfaces import ISavepointDataManager
@@ -11,21 +17,17 @@ from zope.component import ComponentLookupError
 from zope.component import getUtilitiesFor
 from zope.component import getUtility
 from zope.globalrequest import getRequest
-from zope.interface import implements
+from zope.interface import implementer
 from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleVocabulary
-import logging
-import urllib
-import urlparse
-import uuid
 
 logger = logging.getLogger('collective.taskqueue')
 
 _marker = object()
 
 
+@implementer(ISavepoint)
 class DummySavepoint:
-    implements(ISavepoint)
 
     valid = property(lambda self: self.transaction is not None)
 
@@ -36,9 +38,8 @@ class DummySavepoint:
         pass
 
 
+@implementer(ISavepointDataManager)
 class TaskQueueTransactionDataManager(object):
-
-    implements(ISavepointDataManager)
 
     _COUNTER = 0
 
@@ -96,9 +97,8 @@ class TaskQueueBase(object):
         return task_id
 
 
+@implementer(ITaskQueue)
 class LocalVolatileTaskQueue(TaskQueueBase):
-
-    implements(ITaskQueue)
 
     def __init__(self, **kwargs):
         self.queue = Queue()
@@ -122,13 +122,12 @@ class LocalVolatileTaskQueue(TaskQueueBase):
         self.queue = Queue()
 
 
+@implementer(IVocabularyFactory)
 class TaskQueuesVocabulary(object):
-
-    implements(IVocabularyFactory)
 
     def __call__(self, context=None):
         utilities = getUtilitiesFor(ITaskQueue)
-        items = [(unicode(name), queue) for name, queue in utilities]
+        items = [(name.decode('utf-8'), queue) for name, queue in utilities]
         return SimpleVocabulary.fromItems(items)
 
 
@@ -143,7 +142,7 @@ def make_task(url=None, method='GET', params=None, headers=None,
     if params:
         parts = list(urlparse.urlparse(url))
         parts[4] = '&'.join(filter(bool, [parts[4],  # 4 == query
-                                          urllib.urlencode(params)]))
+                                          urlencode(params)]))
         url = urlparse.urlunparse(parts)
 
     # Copy HTTP-headers from request._orig_env:
@@ -151,14 +150,14 @@ def make_task(url=None, method='GET', params=None, headers=None,
     for key, value in env.items():
         if key.startswith('HTTP_'):
             key = '-'.join(map(str.capitalize, key[5:].split('_')))
-            if key != 'User-Agent' and not key in headers:
+            if key != 'User-Agent' and key not in headers:
                 headers[key] = value
         elif key.startswith('CONTENT_') and payload is _marker:
             key = '-'.join(map(str.capitalize, key.split('_')))
             headers[key] = value
 
     # Copy payload from re-seekable StringIO when not explicitly given:
-    if payload is _marker and request.stdin is not None and type(request.stdin) is not file:  # noqa
+    if payload is _marker and isinstance(request.stdin, six.BytesIO):
         request.stdin.seek(0)
         payload = request.stdin.read()
         request.stdin.seek(0)
@@ -176,7 +175,7 @@ def make_task(url=None, method='GET', params=None, headers=None,
     def safe_str(s):
         if isinstance(s, bool):
             return str(s).lower()
-        elif isinstance(s, unicode):
+        elif isinstance(s, six.text_type):
             return s.encode('utf-8', 'replace')
         else:
             return str(s)
@@ -185,8 +184,7 @@ def make_task(url=None, method='GET', params=None, headers=None,
     task = {
         'url': url,  # Physical /Plone/to/callable with optional querystring
         'method': method,  # GET or POST
-        'headers': ['{0:s}: {1:s}'.format(key, safe_str(value))
-                    for key, value in sorted(headers.items())],
+        'headers': ['{0:s}: {1:s}'.format(k, safe_str(v)) for k, v in sorted(headers.items())],  # noqa
         'payload': payload
     }
 

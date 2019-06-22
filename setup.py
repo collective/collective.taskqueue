@@ -1,4 +1,5 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages
+from setuptools import setup
 
 setup(
     name='collective.taskqueue',
@@ -24,7 +25,7 @@ setup(
     keywords='',
     author='Asko Soukka',
     author_email='asko.soukka@iki.fi',
-    url='https://github.com/datakurre/collective.taskqueue/',
+    url='https://github.com/collective/collective.taskqueue/',
     license='GPL',
     packages=find_packages('src', exclude=['ez_setup']),
     package_dir={'': 'src'},
@@ -33,6 +34,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'setuptools',
+        'six',
         'Zope2',
         'five.globalrequest',
     ],
