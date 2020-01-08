@@ -7,7 +7,7 @@ from Products.PluggableAuthService.interfaces.plugins import (
     IExtractionPlugin,
     IAuthenticationPlugin
 )
-from Products.PlonePAS.Extensions.Install import activatePluginInterfaces
+from Products.PlonePAS.setuphandlers import activatePluginInterfaces
 from AccessControl.Permissions import add_user_folders
 from Products.PluggableAuthService import PluggableAuthService
 
