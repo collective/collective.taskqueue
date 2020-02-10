@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='collective.taskqueue',
-    version='1.0',
+    version='1.0.1.dev0',
     description='Asyncore-based asynchronous task queue for Plone',
     long_description=(open('README.rst').read() + '\n' +
                       open('CHANGES.txt').read()),
