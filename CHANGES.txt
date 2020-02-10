@@ -7,6 +7,9 @@ Changelog
 - use `@implementer` decorator
   [petschki]
 
+- Make it work on Plone 5.2.
+  [gforcada]
+
 0.8.2 (2017-01-03)
 ------------------
 
