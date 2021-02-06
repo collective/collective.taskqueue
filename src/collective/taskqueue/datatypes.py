@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from collective.taskqueue.config import HAS_MSGPACK
-from collective.taskqueue.config import HAS_REDIS
 from collective.taskqueue.config import TASK_QUEUE_IDENT
 from collective.taskqueue.config import TASK_QUEUE_SERVER_IDENT
 from collective.taskqueue.interfaces import ITaskQueue
@@ -32,11 +31,6 @@ class TaskQueueFactory(object):
             self.kwargs.pop("port")
 
         if self.queue == "redis":
-            assert HAS_REDIS, (
-                "Redis-queues require redis-package. "
-                "Please, require collective.taskqueue using "
-                '"collective.taskqueue [redis]" to get all the dependencies.'
-            )
             assert HAS_MSGPACK, (
                 "Redis-queues require msgpack-python-package. "
                 "Please, require collective.taskqueue using "
@@ -83,11 +77,6 @@ class TaskQueueServerFactory(object):
         self.retry_max_count = section.retry_max_count
 
         if self.queue == "redis":
-            assert HAS_REDIS, (
-                "Redis-queues require redis-package. "
-                "Please, require collective.taskqueue using "
-                '"collective.taskqueue [redis]" to get all the dependencies.'
-            )
             assert HAS_MSGPACK, (
                 "Redis-queues require msgpack-python-package. "
                 "Please, require collective.taskqueue using "

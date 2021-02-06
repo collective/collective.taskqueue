@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from collective.taskqueue.config import HAS_MSGPACK
-from collective.taskqueue.config import HAS_REDIS
 from collective.taskqueue.testing import REDIS_TASK_QUEUE_FUNCTIONAL_TESTING
 from collective.taskqueue.tests.test_taskqueue import TestLocalVolatileTaskQueue
 
 
-if HAS_REDIS and HAS_MSGPACK:
+if HAS_MSGPACK:
 
     class TestRedisTaskQueue(TestLocalVolatileTaskQueue):
 

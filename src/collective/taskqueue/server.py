@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from collective.taskqueue.config import HAS_REDIS
 from collective.taskqueue.config import TASK_QUEUE_SERVER_IDENT
 from collective.taskqueue.interfaces import ITaskQueue
 from collective.taskqueue.interfaces import ITaskQueueLayer
@@ -55,6 +54,10 @@ def make_environ(task):
         # It might be preferable for http.HTTPChannel to clear out newlines.
         environ[name] = _wsgiString(value).replace("\n", " ")
 
+    if isinstance(task["payload"], bytes):
+        payload = task["payload"]
+    else:
+        payload = task["payload"].encode("UTF-8")
     environ.update(
         {
             "wsgi.version": (1, 0),
@@ -63,7 +66,7 @@ def make_environ(task):
             "wsgi.multithread": True,
             "wsgi.multiprocess": False,
             "wsgi.errors": _ErrorStream(),
-            "wsgi.input": _InputStream(BytesIO(task["payload"])),
+            "wsgi.input": _InputStream(BytesIO(payload)),
         }
     )
 
@@ -138,7 +141,7 @@ class TaskQueueServer(Service):
 
     def consume_task_from_queue(self):
         queue = self.get_task_queue()
-        d = queue.get()
+        d = queue.get(consumer_name=self.name)
         d.addCallback(self.dispatch)
 
     def get_task_queue(self):
@@ -183,6 +186,7 @@ class TaskQueueServer(Service):
         response_headers = dict(task["response"]["headers"])
 
         # Acknowledge done task for queue with expected consumer state
+        task.pop("response", None)  # Restore task its origin state
         task_queue = self.get_task_queue()
         self.task_acknowledgement_mutex.run(
             task_queue.task_done,
@@ -204,62 +208,56 @@ class TaskQueueServer(Service):
         elif not status_line.startswith("2"):
             logger.error("{0:s} ({1:s})".format(status_line, task["url"]))
 
-    def _set_readable_redis(self, task_queue):
-        # DEPRECATED; To be reviewed for Redis support
-        redis_connected = False
+    # def _set_readable_redis(self, task_queue):
+    #     # DEPRECATED; To be reviewed for Redis support
+    #     redis_connected = False
+    #     try:
+    #         # Subscribe to Redis queue events
+    #         task_queue.pubsub.subscribe(task_queue.redis_key)
+    #         task_queue.pubsub.connection._sock.setblocking(0)
+    #         redis_connected = True
+    #     except txredisapi.ConnectionError:
+    #         # Try again in the next asyncore loop iteration
+    #         pass
+    #
+    #     if redis_connected:
+    #         # Replace initial dummy socket with Redis PubSub socket
+    #         self.del_channel()
+    #         # XXX: Because the following line mutates asyncore map within poll,
+    #         # it's important that the currently mapped socket remains open.
+    #         self.set_socket(task_queue.pubsub.connection._sock)
+    #         self._connection_made = True
+    #         logger.info(
+    #             "TaskQueueServer listening to Redis events for "
+    #             "Redis queue '%s'." % task_queue.redis_key
+    #         )
 
-        import redis
-
-        try:
-            # Subscribe to Redis queue events
-            task_queue.pubsub.subscribe(task_queue.redis_key)
-            task_queue.pubsub.connection._sock.setblocking(0)
-            redis_connected = True
-        except redis.ConnectionError:
-            # Try again in the next asyncore loop iteration
-            pass
-
-        if redis_connected:
-            # Replace initial dummy socket with Redis PubSub socket
-            self.del_channel()
-            # XXX: Because the following line mutates asyncore map within poll,
-            # it's important that the currently mapped socket remains open.
-            self.set_socket(task_queue.pubsub.connection._sock)
-            self._connection_made = True
-            logger.info(
-                "TaskQueueServer listening to Redis events for "
-                "Redis queue '%s'." % task_queue.redis_key
-            )
-
-    def connectionMade(self):
-        # DEPRECATED; To be reviewed for Redis support
-        task_queue = self.get_task_queue()
-
-        # Init asyncore dispatcher readability
-        if self._connection_made is None:
-            if HAS_REDIS:
-                from collective.taskqueue.redisqueue import RedisTaskQueue
-
-                if issubclass(task_queue.__class__, RedisTaskQueue):
-                    # Configure asyncore socket map to poll Redis events
-                    self._set_readable_redis(task_queue)
-                else:
-                    self._connection_made = False
-            else:
-                self._connection_made = False
-
-        # Poll task queue
-        if self.unfinished_tasks_mutex.acquire(False):  # don't block, but skip
-            try:
-                if (
-                    self.concurrent_limit == 0
-                    or self.concurrent_tasks < self.concurrent_limit
-                ):
-                    task = task_queue.get(consumer_name=self.name)
-                    if task is not None:
-                        self.concurrent_tasks += 1
-                        self.dispatch(task)
-            finally:
-                self.unfinished_tasks_mutex.release()
-
-        return bool(self._connection_made)
+    # def connectionMade(self):
+    #     # DEPRECATED; To be reviewed for Redis support
+    #     task_queue = self.get_task_queue()
+    #
+    #     # Init asyncore dispatcher readability
+    #     if self._connection_made is None:
+    #         from collective.taskqueue.redisqueue import RedisTaskQueue
+    #
+    #         if issubclass(task_queue.__class__, RedisTaskQueue):
+    #             # Configure asyncore socket map to poll Redis events
+    #             self._set_readable_redis(task_queue)
+    #         else:
+    #             self._connection_made = False
+    #
+    #     # Poll task queue
+    #     if self.unfinished_tasks_mutex.acquire(False):  # don't block, but skip
+    #         try:
+    #             if (
+    #                 self.concurrent_limit == 0
+    #                 or self.concurrent_tasks < self.concurrent_limit
+    #             ):
+    #                 task = task_queue.get(consumer_name=self.name)
+    #                 if task is not None:
+    #                     self.concurrent_tasks += 1
+    #                     self.dispatch(task)
+    #         finally:
+    #             self.unfinished_tasks_mutex.release()
+    #
+    #     return bool(self._connection_made)

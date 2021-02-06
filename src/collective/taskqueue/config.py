@@ -4,13 +4,6 @@ import pkg_resources
 
 
 try:
-    pkg_resources.get_distribution("redis")
-except pkg_resources.DistributionNotFound:
-    HAS_REDIS = False
-else:
-    HAS_REDIS = True
-
-try:
     pkg_resources.get_distribution("msgpack-python")
 except pkg_resources.DistributionNotFound:
     HAS_MSGPACK = False

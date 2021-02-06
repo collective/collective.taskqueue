@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from AccessControl import getSecurityManager
 from collective.taskqueue.interfaces import ITaskQueue
-from io import IOBase
 from transaction import get as get_transaction
 from transaction.interfaces import ISavepoint
 from transaction.interfaces import ISavepointDataManager

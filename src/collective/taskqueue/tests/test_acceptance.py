@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from collective.taskqueue.config import HAS_MSGPACK
-from collective.taskqueue.config import HAS_REDIS
 from collective.taskqueue.config import HAVE_PLONE_5
 from collective.taskqueue.testing import REDIS_TASK_QUEUE_ZSERVER_FIXTURE
 from collective.taskqueue.testing import TASK_QUEUE_ZSERVER_FIXTURE
@@ -85,7 +84,7 @@ def test_suite():
             )
         ]
     )
-    if HAS_REDIS and HAS_MSGPACK:
+    if HAS_MSGPACK:
         suite.addTests(
             [
                 layered(
