@@ -38,6 +38,44 @@ def makeRedisPubSubProtocol(queue):
     return RedisPubSubProtocol
 
 
+def makeConnection(
+    host,
+    port,
+    dbid,
+    poolsize,
+    reconnect,
+    isLazy,
+    charset,
+    password,
+    connectTimeout,
+    replyTimeout,
+    convertNumbers,
+    protocol=None,
+):
+    uuid = "%s:%d" % (host, port)
+    factory = redis.RedisFactory(
+        uuid,
+        dbid,
+        poolsize,
+        isLazy,
+        redis.ConnectionHandler,
+        charset,
+        password,
+        replyTimeout,
+        convertNumbers,
+    )
+    factory.continueTrying = reconnect
+    if protocol:
+        factory.protocol = protocol
+    for x in range(poolsize):
+        reactor.connectTCP(host, port, factory, connectTimeout)
+
+    if isLazy:
+        return factory.handler
+    else:
+        return factory.deferred
+
+
 def makeUnixConnection(
     path,
     dbid,
@@ -119,7 +157,34 @@ class RedisTaskQueue(TaskQueueBase):
                 protocol=makeRedisPubSubProtocol(self),
             )
         else:
-            raise NotImplemented()
+            self.connection = yield makeConnection(
+                host=self.kwargs["host"],
+                port=self.kwargs["port"],
+                dbid=int(self.kwargs["db"]),
+                poolsize=1,
+                isLazy=False,
+                reconnect=True,
+                charset="UTF-8",
+                password=self.kwargs.get("password") or None,
+                connectTimeout=REDIS_CONNECTION_TIMEOUT,
+                replyTimeout=REDIS_CONNECTION_TIMEOUT,
+                convertNumbers=True,
+                protocol=None,
+            )
+            makeConnection(
+                host=self.kwargs["host"],
+                port=self.kwargs["port"],
+                dbid=int(self.kwargs["db"]),
+                poolsize=1,
+                isLazy=True,
+                reconnect=True,
+                charset="UTF-8",
+                password=self.kwargs.get("password"),
+                connectTimeout=REDIS_CONNECTION_TIMEOUT,
+                replyTimeout=REDIS_CONNECTION_TIMEOUT,
+                convertNumbers=True,
+                protocol=makeRedisPubSubProtocol(self),
+            )
 
         self._requeued_processing = False  # Requeue old processing on start
 
