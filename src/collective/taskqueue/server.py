@@ -8,6 +8,7 @@ from twisted.application.service import Service
 from twisted.internet import reactor
 from twisted.internet import threads
 from twisted.internet.defer import DeferredLock
+from twisted.logger import Logger
 from twisted.python.runtime import seconds
 from twisted.web.http import _escape
 from twisted.web.http import datetimeToLogString
@@ -18,7 +19,7 @@ from zope.component import ComponentLookupError
 from zope.component import getUtility
 from zope.interface import implementer
 from ZPublisher import WSGIPublisher
-from ZServer.HTTPRequest import HTTPRequest
+from ZPublisher.HTTPRequest import HTTPRequest
 import logging
 
 
@@ -122,10 +123,11 @@ class TaskQueueServer(Service):
         # Use given publish_module instead of WSGIPublisher.publish_module
         # to support integration tests
         self.publish_module = publish_module or WSGIPublisher.publish_module
-        self.access_logger = access_logger or None
+        self.access_logger = access_logger or Logger()
+        self.access_logger.info("TaskQueueServer started")
 
         # Init settings
-        self.name = name
+        self.name = "collective.taskqueue:server:" + name
         self.queue = queue
         self.concurrent_limit = concurrent_limit
         self.concurrent_tasks = 0
@@ -176,7 +178,7 @@ class TaskQueueServer(Service):
     def start_response(self, status, headers, excInfo=None, task=None):
         task["response"] = {"status": status, "headers": headers}
         if self.access_logger is not None:
-            self.access_logger.log(make_access_log_line(status, headers, task))
+            self.access_logger.info(make_access_log_line(status, headers, task))
 
     def finish_response(self, app_iter, task=None):
         self.concurrent_limit -= 1
@@ -207,57 +209,3 @@ class TaskQueueServer(Service):
         # Log error when not HTTP 2xx
         elif not status_line.startswith("2"):
             logger.error("{0:s} ({1:s})".format(status_line, task["url"]))
-
-    # def _set_readable_redis(self, task_queue):
-    #     # DEPRECATED; To be reviewed for Redis support
-    #     redis_connected = False
-    #     try:
-    #         # Subscribe to Redis queue events
-    #         task_queue.pubsub.subscribe(task_queue.redis_key)
-    #         task_queue.pubsub.connection._sock.setblocking(0)
-    #         redis_connected = True
-    #     except txredisapi.ConnectionError:
-    #         # Try again in the next asyncore loop iteration
-    #         pass
-    #
-    #     if redis_connected:
-    #         # Replace initial dummy socket with Redis PubSub socket
-    #         self.del_channel()
-    #         # XXX: Because the following line mutates asyncore map within poll,
-    #         # it's important that the currently mapped socket remains open.
-    #         self.set_socket(task_queue.pubsub.connection._sock)
-    #         self._connection_made = True
-    #         logger.info(
-    #             "TaskQueueServer listening to Redis events for "
-    #             "Redis queue '%s'." % task_queue.redis_key
-    #         )
-
-    # def connectionMade(self):
-    #     # DEPRECATED; To be reviewed for Redis support
-    #     task_queue = self.get_task_queue()
-    #
-    #     # Init asyncore dispatcher readability
-    #     if self._connection_made is None:
-    #         from collective.taskqueue.redisqueue import RedisTaskQueue
-    #
-    #         if issubclass(task_queue.__class__, RedisTaskQueue):
-    #             # Configure asyncore socket map to poll Redis events
-    #             self._set_readable_redis(task_queue)
-    #         else:
-    #             self._connection_made = False
-    #
-    #     # Poll task queue
-    #     if self.unfinished_tasks_mutex.acquire(False):  # don't block, but skip
-    #         try:
-    #             if (
-    #                 self.concurrent_limit == 0
-    #                 or self.concurrent_tasks < self.concurrent_limit
-    #             ):
-    #                 task = task_queue.get(consumer_name=self.name)
-    #                 if task is not None:
-    #                     self.concurrent_tasks += 1
-    #                     self.dispatch(task)
-    #         finally:
-    #             self.unfinished_tasks_mutex.release()
-    #
-    #     return bool(self._connection_made)

@@ -63,8 +63,9 @@ class TaskQueueEmailView(BrowserView):
         mailhost = getToolByName(self.context, "MailHost")
         mailhost.send(
             self.request.form.get("form.widgets.message"),
-            "recipient@localhost",
-            "sender@localhost",
-            "Test Email",
+            mto="recipient@localhost",
+            mfrom="sender@localhost",
+            subject="Test Email",
+            charset="utf-8",
         )
         return u"Ok."

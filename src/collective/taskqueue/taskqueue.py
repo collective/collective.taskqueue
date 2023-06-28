@@ -108,7 +108,7 @@ class TaskQueueBase(Service):
             vocabulary = factory()
             for term in vocabulary:
                 if term.value == self:
-                    self._name = term.token
+                    self._name = "collective.taskqueue:queue:" + term.token
         return self._name
 
     def setName(self, name):

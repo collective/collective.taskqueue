@@ -90,7 +90,6 @@ class TaskQueueServerFactory(object):
         return self.server_name
 
     def create(self):
-        from ZServer.AccessLogger import access_logger
         from collective.taskqueue.server import TaskQueueServer
 
         server = TaskQueueServer(
@@ -98,7 +97,7 @@ class TaskQueueServerFactory(object):
             queue=self.queue,
             concurrent_limit=self.concurrent_limit,
             retry_max_count=self.retry_max_count,
-            access_logger=access_logger,
+            access_logger=None,
         )
 
         # Support plone.app.debugtoolbar:
