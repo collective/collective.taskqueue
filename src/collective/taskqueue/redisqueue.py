@@ -209,11 +209,11 @@ class RedisTaskQueue(TaskQueueBase):
             return 0
 
     def serialize(self, task):
-        return msgpack.dumps(sorted(task.items()), encoding="UTF-8")
+        return msgpack.dumps(sorted(task.items()))
 
     def deserialize(self, msg):
         if msg is not None:
-            return dict(msgpack.loads(msg, encoding="UTF-8"))
+            return dict(msgpack.loads(msg))
         else:
             return None
 
