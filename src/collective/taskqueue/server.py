@@ -29,7 +29,7 @@ logger = logging.getLogger("collective.taskqueue")
 def make_environ(task):
     headers = {}
     for header in task["headers"]:
-        name, value = header.split(":", 1)
+        name, value = header.split(": ", 1)
         if name not in headers:
             headers[name] = value
         else:
