@@ -1,0 +1,11 @@
+pip==23.1.2
+setuptools==67.8.0
+wheel==0.40.0
+zc.buildout==3.0.1
+
+# Windows specific down here (has to be installed here, fails in buildout)
+# Dependency of zope.sendmail:
+pywin32 ; platform_system == 'Windows'
+
+# SSL Certs on windows, because Python is missing them otherwise:
+certifi ; platform_system == 'Windows'
