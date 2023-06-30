@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from AccessControl.class_init import InitializeClass
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from collective.taskqueue.interfaces import ITaskQueueLayer
@@ -43,7 +42,7 @@ class TaskQueueAuthPlugin(BasePlugin):
 
         # Read magical header
         task_user_id = request.getHeader("X-Task-User-Id")
-        if task_user_id != None:
+        if task_user_id is not None:
             return {"login": task_user_id}
 
         return {}
@@ -55,7 +54,7 @@ class TaskQueueAuthPlugin(BasePlugin):
             return None
 
         # Verify credentials data
-        if not "login" in credentials:
+        if "login" not in credentials:
             return None
 
         # Verify user

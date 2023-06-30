@@ -17,9 +17,6 @@
       in {
         devShells.default = pkgs.mkShell {
           buildInputs = [ inputs.devenv.packages.${system}.devenv ];
-          shellHook = ''
-            devenv shell
-          '';
         };
         formatter = pkgs.nixfmt;
       });

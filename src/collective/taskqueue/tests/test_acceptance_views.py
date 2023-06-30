@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
+from collective.taskqueue import taskqueue
 from Products.CMFCore.utils import getToolByName
 from Products.Five import BrowserView
-from collective.taskqueue import taskqueue
 from z3c.form import button
 from z3c.form import field
 from z3c.form import form
@@ -10,17 +9,15 @@ from zope.interface import Interface
 
 
 class ITaskQueueForm(Interface):
-
-    url = schema.ASCIILine(title=u"Path")
+    url = schema.ASCIILine(title="Path")
 
 
 class TaskQueueForm(form.Form):
-
     fields = field.Fields(ITaskQueueForm)
 
     ignoreContext = True
 
-    @button.buttonAndHandler(u"Queue")
+    @button.buttonAndHandler("Queue")
     def handleQueue(self, action):
         data, errors = self.extractData()
         if errors:
@@ -35,27 +32,25 @@ class TaskQueueForm(form.Form):
 
 
 class ITaskQueueEmailForm(Interface):
-
-    message = schema.TextLine(title=u"Message")
-    amount = schema.Int(title=u"Amount")
+    message = schema.TextLine(title="Message")
+    amount = schema.Int(title="Amount")
 
 
 class TaskQueueEmailForm(form.Form):
-
     fields = field.Fields(ITaskQueueEmailForm)
 
     ignoreContext = True
 
-    @button.buttonAndHandler(u"Queue")
+    @button.buttonAndHandler("Queue")
     def handleQueue(self, action):
         data, errors = self.extractData()
         if errors:
             return False
         path = "/".join(self.context.getPhysicalPath())
         for i in range(data["amount"]):
-            taskqueue.add("{0:s}/send-email-view".format(path), method="POST")
+            taskqueue.add(f"{path:s}/send-email-view", method="POST")
         plone_utils = getToolByName(self.context, "plone_utils")
-        plone_utils.addPortalMessage("Queued {0:d} new email(s)".format(data["amount"]))
+        plone_utils.addPortalMessage("Queued {:d} new email(s)".format(data["amount"]))
 
 
 class TaskQueueEmailView(BrowserView):
@@ -68,4 +63,4 @@ class TaskQueueEmailView(BrowserView):
             subject="Test Email",
             charset="utf-8",
         )
-        return u"Ok."
+        return "Ok."

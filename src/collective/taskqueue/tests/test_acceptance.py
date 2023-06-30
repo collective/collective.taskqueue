@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from collective.taskqueue.config import HAS_MSGPACK
 from collective.taskqueue.config import HAVE_PLONE_5
 from collective.taskqueue.testing import REDIS_TASK_QUEUE_ZSERVER_FIXTURE
@@ -12,8 +11,8 @@ from plone.testing import layered
 from plone.testing import z2
 from zope.configuration import xmlconfig
 
-import unittest
 import robotsuite
+import unittest
 
 
 class TaskQueueFormLayer(PloneSandboxLayer):

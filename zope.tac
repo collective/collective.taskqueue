@@ -1,3 +1,5 @@
+# flake8: noqa because this is temporary
+
 # Rationale:
 #
 # - Zope nowadays runs behind WSGI
@@ -28,62 +30,73 @@
 
 # install asyncio main loop in twisted
 from twisted.internet import asyncioreactor
+
+
 asyncioreactor.install()
 
+from collections import namedtuple
+from collective.taskqueue.datatypes import TaskQueueFactory
+from collective.taskqueue.datatypes import TaskQueueServerFactory
 from twisted.application import internet
 from twisted.application import service
 from twisted.internet import reactor
 from twisted.web.server import Site
 from twisted.web.wsgi import WSGIResource
-import asyncio
+
 import os
 import plaster
 
-config='parts/instance/etc/wsgi.ini'
+
+config = "parts/instance/etc/wsgi.ini"
 config = os.path.abspath(config)
 port = 8081
 
 # Create the WSGI application
-loader = plaster.get_loader(config, protocols=['wsgi'])
-app = loader.get_wsgi_app('main')
+loader = plaster.get_loader(config, protocols=["wsgi"])
+app = loader.get_wsgi_app("main")
 
 # Twisted WSGI server setup
 resource = WSGIResource(reactor, reactor.getThreadPool(), app)
 factory = Site(resource)
 
 # Twisted Application setup
-application = service.Application('zope')
+application = service.Application("zope")
 internet.TCPServer(port, factory).setServiceParent(application)
 
-from collective.taskqueue.datatypes import TaskQueueFactory
-from collective.taskqueue.datatypes import TaskQueueServerFactory
-from collections import namedtuple
 
 # Task Queue
-task_queue = TaskQueueFactory(
-    namedtuple(
-        'TaskQueueSection',
-        ['queue', 'type', 'host', 'port', 'db', 'password', 'unix_socket_path'],
-    )(
-        queue="default",
-        type="collective.taskqueue.redisqueue.RedisTaskQueue",
-        host="localhost",
-        port=6379,
-        db=1,
-        password="",
-        unix_socket_path="",
+task_queue = (
+    TaskQueueFactory(
+        namedtuple(
+            "TaskQueueSection",
+            ["queue", "type", "host", "port", "db", "password", "unix_socket_path"],
+        )(
+            queue="default",
+            type="collective.taskqueue.redisqueue.RedisTaskQueue",
+            host="localhost",
+            port=6379,
+            db=1,
+            password="",
+            unix_socket_path="",
+        )
     )
-).create().setServiceParent(application)
+    .create()
+    .setServiceParent(application)
+)
 
 # Task Queue Worker
-server = TaskQueueServerFactory(
-    namedtuple(
-        'TaskQueueServerSection',
-        ['name', 'queue', 'concurrent_limit', 'retry_max_count'],
-    )(
-        name="default",
-        queue="default",
-        concurrent_limit=1,
-        retry_max_count=10,
+server = (
+    TaskQueueServerFactory(
+        namedtuple(
+            "TaskQueueServerSection",
+            ["name", "queue", "concurrent_limit", "retry_max_count"],
+        )(
+            name="default",
+            queue="default",
+            concurrent_limit=1,
+            retry_max_count=10,
+        )
     )
-).create().setServiceParent(application)
+    .create()
+    .setServiceParent(application)
+)

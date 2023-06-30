@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from App.config import getConfiguration
 from collective.taskqueue import taskqueue
 from collective.taskqueue.config import HAS_MSGPACK
@@ -7,6 +6,7 @@ from plone.testing import Layer
 from plone.testing import z2
 from zope.component import getSiteManager
 from zope.configuration import xmlconfig
+
 import asyncore
 import logging
 
@@ -40,7 +40,7 @@ class ZServer(z2.ZServer):
         while socket_map and not self._shutdown:
             try:
                 asyncore.poll(self.timeout, socket_map)
-            except:
+            except Exception:
                 # Try once more, because the socket_map have been modified:
                 asyncore.poll(self.timeout, socket_map)
 
@@ -52,7 +52,7 @@ class TaskQueueServerLayer(Layer):
     defaultBases = (z2.STARTUP,)
 
     def __init__(self, queue="test-queue", zserver_enabled=False):
-        super(TaskQueueServerLayer, self).__init__()
+        super().__init__()
         self.queue = queue
         self.zserver_enabled = zserver_enabled
 
@@ -103,7 +103,7 @@ class LocalTaskQueueServerLayer(TaskQueueServerLayer):
         queue = taskqueue.LocalVolatileTaskQueue()
         sm = getSiteManager()
         sm.registerUtility(queue, provided=ITaskQueue, name="test-queue")
-        super(LocalTaskQueueServerLayer, self).setUp()
+        super().setUp()
 
 
 TASK_QUEUE_FIXTURE = LocalTaskQueueServerLayer(queue="test-queue")
@@ -125,7 +125,7 @@ class RedisTaskQueueServerLayer(TaskQueueServerLayer):
         queue = redisqueue.RedisTaskQueue()
         sm = getSiteManager()
         sm.registerUtility(queue, provided=ITaskQueue, name="test-queue")
-        super(RedisTaskQueueServerLayer, self).setUp()
+        super().setUp()
 
 
 REDIS_TASK_QUEUE_FIXTURE = RedisTaskQueueServerLayer(queue="test-queue")

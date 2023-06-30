@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 from zope.interface import Attribute
 from zope.interface import Interface
 
 
 class ITaskQueue(Interface):
-
     name = Attribute("Queue registration name (readonly)")
 
     def __len__():

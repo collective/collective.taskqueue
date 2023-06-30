@@ -1,17 +1,16 @@
-# -*- coding: utf-8 -*-
 from collective.taskqueue import taskqueue
 from collective.taskqueue.interfaces import ITaskQueue
 from collective.taskqueue.testing import runAsyncTest
 from collective.taskqueue.testing import TASK_QUEUE_FUNCTIONAL_TESTING
 from zope.component import getUtility
 from zope.testing.loggingsupport import InstalledHandler
+
 import Queue
 import transaction
 import unittest2 as unittest
 
 
 class TestLocalVolatileTaskQueue(unittest.TestCase):
-
     layer = TASK_QUEUE_FUNCTIONAL_TESTING
     queue = "test-queue"
 
@@ -58,8 +57,8 @@ class TestLocalVolatileTaskQueue(unittest.TestCase):
         self.assertEqual(len(self.task_queue), 0)
         expected_result = []
         for i in range(100):
-            taskqueue.add("/{0:02d}".format(i), queue=self.queue)
-            expected_result.append("http://nohost:/{0:02d}".format(i))
+            taskqueue.add(f"/{i:02d}", queue=self.queue)
+            expected_result.append(f"http://nohost:/{i:02d}")
         transaction.commit()
         self.assertEqual(len(self.task_queue), 100)
 

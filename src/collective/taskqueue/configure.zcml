@@ -1,14 +1,30 @@
-<configure xmlns="http://namespaces.zope.org/zope"
-           xmlns:zcml="http://namespaces.zope.org/zcml">
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
+    >
 
-  <utility factory=".taskqueue.TaskQueuesVocabulary"
-           name="collective.taskqueue.queues" />
+  <utility
+      factory=".taskqueue.TaskQueuesVocabulary"
+      name="collective.taskqueue.queues"
+      />
 
-  <include package=".pasplugin"
-           zcml:condition="installed Products.CMFPlone"/>
+  <include
+      package=".pasplugin"
+      zcml:condition="installed Products.CMFPlone"
+      />
 
-  <include package="Products.CMFPlone" file="meta.zcml"
-           zcml:condition="installed Products.CMFPlone"/>
+  <include
+      package="Products.CMFPlone"
+      file="meta.zcml"
+      zcml:condition="installed Products.CMFPlone"
+      />
+
+  <!--
+  <include
+      package=".tests"
+      file="test_acceptance.zcml"
+      />
+  -->
 
   <subscriber
       for="Products.CMFPlone.interfaces.IPloneSiteRoot

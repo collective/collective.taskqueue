@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from collective.taskqueue.config import TASK_QUEUE_SERVER_IDENT
 from collective.taskqueue.interfaces import ITaskQueue
 from collective.taskqueue.interfaces import ITaskQueueLayer
@@ -20,6 +19,7 @@ from zope.component import getUtility
 from zope.interface import implementer
 from ZPublisher import WSGIPublisher
 from ZPublisher.HTTPRequest import HTTPRequest
+
 import logging
 
 
@@ -83,8 +83,8 @@ def make_access_log_line(status_line, response_headers, task):
     agent = _escape(headers.get("User-Agent") or "-")
     timestamp = seconds()
     line = (
-        u'"%(ip)s" - - %(timestamp)s "%(method)s %(uri)s %(protocol)s" '
-        u'%(code)s %(length)s "%(referrer)s" "%(agent)s"'
+        '"%(ip)s" - - %(timestamp)s "%(method)s %(uri)s %(protocol)s" '
+        '%(code)s %(length)s "%(referrer)s" "%(agent)s"'
         % dict(
             ip=_escape(ip),
             timestamp=datetimeToLogString(timestamp),
@@ -92,7 +92,7 @@ def make_access_log_line(status_line, response_headers, task):
             uri=_escape(task["url"]),
             protocol=_escape("HTTP/1.1"),
             code=status_line.split()[0],
-            length=headers.get("Content-Length") or u"-",
+            length=headers.get("Content-Length") or "-",
             referrer=referrer,
             agent=agent,
         )
@@ -102,12 +102,11 @@ def make_access_log_line(status_line, response_headers, task):
 
 @implementer(ITaskQueueLayer)
 class TaskRequest(HTTPRequest):
-    """TaskQueue Request """
+    """TaskQueue Request"""
 
 
 @implementer(IService)
 class TaskQueueServer(Service):
-
     # required by ZServer
     SERVER_IDENT = TASK_QUEUE_SERVER_IDENT
 
@@ -137,7 +136,7 @@ class TaskQueueServer(Service):
         self.task_acknowledgement_mutex = DeferredLock()
 
     def startService(self):
-        super(TaskQueueServer, self).startService()
+        super().startService()
         for i in range(self.concurrent_limit):
             self.consume_task_from_queue()
 
@@ -163,10 +162,9 @@ class TaskQueueServer(Service):
             elif isinstance(obj, list):
                 return [decode(o) for o in obj]
             return obj
+
         task = {
-            decode(key): decode(value)
-            if key not in ["payload", b"payload"]
-            else value
+            decode(key): decode(value) if key not in ["payload", b"payload"] else value
             for key, value in task.items()
         }
 
@@ -183,7 +181,7 @@ class TaskQueueServer(Service):
             lambda *args: reactor.callFromThread(
                 lambda *args_, t=task: self.start_response(*args_, task=t),
                 *args,
-                t=task
+                t=task,
             ),
             _request_factory=request_factory,
         )
@@ -215,11 +213,11 @@ class TaskQueueServer(Service):
         # Log warning when HTTP 3xx
         if status_line.startswith("3") and "Location" in response_headers:
             logger.warning(
-                "{0:s} ({1:s} --> {2:s} [not followed])".format(
+                "{:s} ({:s} --> {:s} [not followed])".format(
                     status_line, task["url"], response_headers["Location"]
                 )
             )
 
         # Log error when not HTTP 2xx
         elif not status_line.startswith("2"):
-            logger.error("{0:s} ({1:s})".format(status_line, task["url"]))
+            logger.error("{:s} ({:s})".format(status_line, task["url"]))

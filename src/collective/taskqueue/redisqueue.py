@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from App.config import getConfiguration
 from collective.taskqueue import txredisapi as redis
 from collective.taskqueue.interfaces import ITaskQueue
@@ -10,7 +9,9 @@ from twisted.internet.defer import DeferredLock
 from twisted.internet.defer import DeferredQueue
 from twisted.internet.defer import inlineCallbacks
 from zope.interface import implementer
+
 import msgpack
+
 
 REDIS_CONNECTION_TIMEOUT = 15
 
@@ -114,7 +115,6 @@ def makeUnixConnection(
 
 @implementer(ITaskQueue)
 class RedisTaskQueue(TaskQueueBase):
-
     transaction_data_manager = RedisTaskQueueTDM
 
     def __init__(self, **kwargs):
@@ -198,7 +198,7 @@ class RedisTaskQueue(TaskQueueBase):
     @forever.memoize
     def redis_key(self):
         # XXX: On exception, something is firing before the queue has been registered
-        return "collective.taskqueue.{0:s}".format(self.name)
+        return f"collective.taskqueue.{self.name:s}"
 
     @inlineCallbacks
     def __len__(self):
@@ -226,7 +226,7 @@ class RedisTaskQueue(TaskQueueBase):
     def get(self, consumer_name):
         yield self.mutex.acquire()
 
-        consumer_key = "{0:s}.{1:s}".format(self.redis_key, consumer_name)
+        consumer_key = f"{self.redis_key:s}.{consumer_name:s}"
 
         if not self._requeued_processing:
             yield self._requeue_processing(consumer_name)
@@ -244,7 +244,7 @@ class RedisTaskQueue(TaskQueueBase):
 
     @inlineCallbacks
     def task_done(self, task, status_line, consumer_name, consumer_length):
-        consumer_key = "{0:s}.{1:s}".format(self.redis_key, consumer_name)
+        consumer_key = f"{self.redis_key:s}.{consumer_name:s}"
 
         consumed = yield self.connection.lrem(consumer_key, -1, self.serialize(task))
         assert consumed == 1, "Removal of consumed message failed"
@@ -255,7 +255,7 @@ class RedisTaskQueue(TaskQueueBase):
 
     @inlineCallbacks
     def _requeue_processing(self, consumer_name):
-        consumer_key = "{0:s}.{1:s}".format(self.redis_key, consumer_name)
+        consumer_key = f"{self.redis_key:s}.{consumer_name:s}"
 
         try:
             while (yield self.connection.llen(consumer_key)) > 0:

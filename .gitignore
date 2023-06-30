@@ -17,6 +17,11 @@ __pycache__/
 .tox
 .vscode/
 node_modules/
+CHANGES.rst
+dependencies.svg
+forest.dot
+forest.json
+twistd.pid
 
 # venv / buildout related
 bin/

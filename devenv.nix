@@ -5,16 +5,19 @@
   env.GREET = "devenv";
 
   # https://devenv.sh/packages/
-  packages = [ pkgs.git ];
+  packages = [
+    pkgs.git
+    pkgs.gnumake
+    pkgs.graphviz
+  ];
 
   # https://devenv.sh/scripts/
-  scripts.hello.exec = "echo hello from $GREET";
+  # scripts.hello.exec = "echo hello from $GREET";
 
-  enterShell = ''
-    hello
-    git --version
-  '';
-
+  # enterShell = ''
+  #   hello
+  #   git --version
+  # '';
 
   # https://devenv.sh/languages/
   languages.python.enable = true;

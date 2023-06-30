@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from AccessControl import getSecurityManager
 from collective.taskqueue.interfaces import ITaskQueue
 from transaction import get as get_transaction
@@ -8,6 +7,9 @@ from twisted.application.service import Service
 from twisted.internet import reactor
 from twisted.internet.defer import DeferredQueue
 from twisted.internet.defer import QueueUnderflow
+from urllib.parse import urlencode
+from urllib.parse import urlparse
+from urllib.parse import urlunparse
 from zope.component import ComponentLookupError
 from zope.component import getUtilitiesFor
 from zope.component import getUtility
@@ -16,27 +18,10 @@ from zope.globalrequest import getRequest
 from zope.interface import implementer
 from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleVocabulary
+
 import logging
-import six
 import uuid
 
-
-try:
-    from urllib import urlencode
-    from urlparse import urlparse
-    from urlparse import urlunparse
-except ImportError:
-    from urllib.parse import urlencode
-    from urllib.parse import urlparse
-    from urllib.parse import urlunparse
-
-
-try:
-    from Queue import Empty
-    from Queue import Queue
-except ImportError:
-    from queue import Empty
-    from queue import Queue
 
 logger = logging.getLogger("collective.taskqueue")
 
@@ -45,7 +30,6 @@ _marker = object()
 
 @implementer(ISavepoint)
 class DummySavepoint:
-
     valid = property(lambda self: self.transaction is not None)
 
     def __init__(self, datamanager):
@@ -56,15 +40,14 @@ class DummySavepoint:
 
 
 @implementer(ISavepointDataManager)
-class TaskQueueTransactionDataManager(object):
-
+class TaskQueueTransactionDataManager:
     _COUNTER = 0
 
     def __init__(self, queue, task):
         self.queue = queue
         self.task = task
 
-        self.sort_key = "~collective.taskqueue.{0:d}".format(
+        self.sort_key = "~collective.taskqueue.{:d}".format(
             TaskQueueTransactionDataManager._COUNTER
         )
         TaskQueueTransactionDataManager._COUNTER += 1
@@ -95,7 +78,6 @@ class TaskQueueTransactionDataManager(object):
 
 
 class TaskQueueBase(Service):
-
     transaction_data_manager = TaskQueueTransactionDataManager
 
     _name = None
@@ -146,10 +128,10 @@ class LocalVolatileTaskQueue(TaskQueueBase):
 
 
 @implementer(IVocabularyFactory)
-class TaskQueuesVocabulary(object):
+class TaskQueuesVocabulary:
     def __call__(self, context=None):
         utilities = getUtilitiesFor(ITaskQueue)
-        items = [(six.text_type(name), queue) for name, queue in utilities]
+        items = [(str(name), queue) for name, queue in utilities]
         return SimpleVocabulary.fromItems(items)
 
 
@@ -170,7 +152,7 @@ def make_task(url=None, method="GET", params=None, headers=None, payload=_marker
     for key, value in env.items():
         if key.startswith("HTTP_"):
             key = "-".join(map(str.capitalize, key[5:].split("_")))
-            if key != "User-Agent" and not key in headers:
+            if key != "User-Agent" and key not in headers:
                 headers[key] = value
         elif key.startswith("CONTENT_") and payload is _marker:
             key = "-".join(map(str.capitalize, key.split("_")))
@@ -197,7 +179,7 @@ def make_task(url=None, method="GET", params=None, headers=None, payload=_marker
     def safe_str(s):
         if isinstance(s, bool):
             return str(s).lower()
-        elif isinstance(s, six.text_type) and not isinstance(s, str):
+        elif isinstance(s, str) and not isinstance(s, str):
             return s.encode("utf-8", "replace")
         else:
             return str(s)
@@ -206,8 +188,7 @@ def make_task(url=None, method="GET", params=None, headers=None, payload=_marker
         "url": url,  # Physical /Plone/to/callable with optional querystring
         "method": method,  # GET or POST
         "headers": [
-            "{0:s}: {1:s}".format(key, safe_str(value))
-            for key, value in sorted(headers.items())
+            f"{key:s}: {safe_str(value):s}" for key, value in sorted(headers.items())
         ],
         "payload": payload,
     }
@@ -218,9 +199,8 @@ def make_task(url=None, method="GET", params=None, headers=None, payload=_marker
 def add(
     url=None, method="GET", params=None, headers=None, payload=_marker, queue=_marker
 ):
-
     vocabulary = getUtility(IVocabularyFactory, "collective.taskqueue.queues")()
-    assert len(vocabulary), u"No task queues defined. Cannot queue task."
+    assert len(vocabulary), "No task queues defined. Cannot queue task."
     fallback = sorted(tuple(vocabulary.by_token))[0]
 
     if queue is _marker:
@@ -239,9 +219,8 @@ def add(
 
 
 def reset(queue=_marker):
-
     vocabulary = getUtility(IVocabularyFactory, "collective.taskqueue.queues")()
-    assert len(vocabulary), u"No task queues defined. Cannot reset queue."
+    assert len(vocabulary), "No task queues defined. Cannot reset queue."
     fallback = sorted(tuple(vocabulary.by_token))[0]
 
     if queue is _marker:

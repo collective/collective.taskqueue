@@ -1,3 +1,5 @@
 recursive-include src *
+recursive-include news *.gitkeep
 include *
 global-exclude *.pyc
+exclude .installed.cfg .mr.developer.cfg dependencies.svg forest.dot forest.json

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from collective.taskqueue.interfaces import ITaskQueueLayer
 from Products.CMFCore.utils import getToolByName
 

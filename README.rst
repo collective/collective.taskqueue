@@ -43,7 +43,7 @@ Minimal configuration with multiple queues:
        queue mailhost
        </taskqueue-server>
 
-Preferred minimal configration with Redis:
+Preferred minimal configuration with Redis:
 
 .. code:: ini
 

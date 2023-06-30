@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from collective.taskqueue import taskqueue
 from collective.taskqueue.interfaces import ITaskQueue
 from collective.taskqueue.testing import LocalTaskQueueServerLayer
@@ -6,6 +5,7 @@ from collective.taskqueue.testing import runAsyncTest
 from plone.testing import z2
 from zope.component import getUtility
 from zope.testing.loggingsupport import InstalledHandler
+
 import logging
 import Queue
 import transaction
@@ -17,7 +17,7 @@ logger = logging.getLogger("collective.taskqueue")
 
 class TaskIdLoggingTaskQueueServerLayer(LocalTaskQueueServerLayer):
     def setUp(self):
-        super(TaskIdLoggingTaskQueueServerLayer, self).setUp()
+        super().setUp()
 
         def logging_handler(app, request, response):
             logger.info(request.getHeader("X-Task-Id"))
@@ -35,7 +35,6 @@ TASK_QUEUE_FUNCTIONAL_TESTING = z2.FunctionalTesting(
 
 
 class TestLocalVolatileTaskQueue(unittest.TestCase):
-
     layer = TASK_QUEUE_FUNCTIONAL_TESTING
     queue = "test-queue"
 

@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 from collective.taskqueue.config import TASK_QUEUE_IDENT
 from collective.taskqueue.config import TASK_QUEUE_SERVER_IDENT
 from collective.taskqueue.interfaces import ITaskQueue
 from zope.component import provideUtility
 
 
-class TaskQueueFactory(object):
+class TaskQueueFactory:
     def __init__(self, section):
         self.ip = None
         self.port = None
@@ -51,12 +50,12 @@ class TaskQueueFactory(object):
         # Support plone.app.debugtoolbar:
         task_queue.ip = self.ip
         task_queue.port = self.port
-        task_queue.server_name = "%s:%s" % (self.server_name, self.queue)
+        task_queue.server_name = f"{self.server_name}:{self.queue}"
 
         return task_queue
 
 
-class TaskQueueServerFactory(object):
+class TaskQueueServerFactory:
     def __init__(self, section):
         self.ip = None
         self.port = None
@@ -88,6 +87,6 @@ class TaskQueueServerFactory(object):
         # Support plone.app.debugtoolbar:
         server.ip = self.ip
         server.port = self.port
-        server.server_name = "%s:%s" % (self.server_name, self.queue)
+        server.server_name = f"{self.server_name}:{self.queue}"
 
         return server

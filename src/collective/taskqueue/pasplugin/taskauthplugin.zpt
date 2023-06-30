@@ -1,43 +1,79 @@
 <h1 tal:replace="structure here/manage_page_header">Header</h1>
 
-<h2 tal:define="form_title string:Add Task Queue PAS plugin"
-    tal:replace="structure here/manage_form_title">Form Title</h2>
+<h2 tal:define="
+      form_title string:Add Task Queue PAS plugin;
+    "
+    tal:replace="structure here/manage_form_title"
+>Form Title</h2>
 
-<p class="form-help">
+<p class="form-help"
+   i18n:translate="collective_taskqueue_plugin_help"
+>
   Task Queue PAS plugin is an authentication plugin, which which allows
   queues tasks to be executed with their creator permissions.
 </p>
 
-<form action="manage_addTaskQueueAuthPlugin" method="post"
-      enctype="multipart/form-data">
-  <table cellspacing="0" cellpadding="2" border="0">
+<form action="manage_addTaskQueueAuthPlugin"
+      enctype="multipart/form-data"
+      method="post"
+>
+  <table border="0"
+         cellpadding="2"
+         cellspacing="0"
+  >
     <tr>
-      <td align="left" valign="top">
-        <div class="form-label">
+      <td align="left"
+          valign="top"
+      >
+        <div class="form-label"
+             i18n:translate=""
+        >
           Id
         </div>
       </td>
-      <td align="left" valign="top">
-        <input type="text" name="id" size="40" />
+      <td align="left"
+          valign="top"
+      >
+        <input name="id"
+               size="40"
+               type="text"
+        />
       </td>
     </tr>
     <tr>
-      <td align="left" valign="top">
-        <div class="form-optional">
+      <td align="left"
+          valign="top"
+      >
+        <div class="form-optional"
+             i18n:translate=""
+        >
           Title
         </div>
       </td>
-      <td align="left" valign="top">
-        <input type="text" name="title" size="40" />
+      <td align="left"
+          valign="top"
+      >
+        <input name="title"
+               size="40"
+               type="text"
+        />
       </td>
     </tr>
     <tr>
-      <td align="left" valign="top">
+      <td align="left"
+          valign="top"
+      >
       </td>
-      <td align="left" valign="top">
+      <td align="left"
+          valign="top"
+      >
         <div class="form-element">
-          <input class="form-element" type="submit" name="submit"
-                 value=" Add " />
+          <input class="form-element"
+                 name="submit"
+                 type="submit"
+                 value=" Add "
+                 i18n:attributes="value"
+          />
         </div>
       </td>
     </tr>

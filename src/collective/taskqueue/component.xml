@@ -1,68 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
 <component prefix="collective.taskqueue.datatypes">
 
-  <sectiontype name="taskqueue"
+  <sectiontype implements="ZServer.server"
+               name="taskqueue"
                datatype=".TaskQueueFactory"
-               implements="ZServer.server">
-    <key name="queue" datatype="string" default="default">
+  >
+    <key default="default"
+         name="queue"
+         datatype="string"
+    >
       <description>
        Unique task queue name.
       </description>
     </key>
-    <key name="type" datatype="string" default="local">
+    <key default="local"
+         name="type"
+         datatype="string"
+    >
       <description>
       Task queue type ('local' or 'redis') or full class path to
       a custom type.
       </description>
     </key>
-    <key name="host" datatype="string" default="localhost">
+    <key default="localhost"
+         name="host"
+         datatype="string"
+    >
       <description>
       Redis server hostname.
       </description>
     </key>
-    <key name="port" datatype="integer" default="6379">
+    <key default="6379"
+         name="port"
+         datatype="integer"
+    >
       <description>
       Redis server port.
       </description>
     </key>
-    <key name="db" datatype="string" default="0">
+    <key default="0"
+         name="db"
+         datatype="string"
+    >
       <description>
       Redis server database.
       </description>
     </key>
-    <key name="password" datatype="string" default="">
+    <key default=""
+         name="password"
+         datatype="string"
+    >
       <description>
       Redis server password.
       </description>
     </key>
-    <key name="unix_socket_path" datatype="string" default="">
+    <key default=""
+         name="unix_socket_path"
+         datatype="string"
+    >
       <description>
       Redis server unix socket path (use instead of *host* and *port*).
       </description>
     </key>
   </sectiontype>
 
-  <sectiontype name="taskqueue-server"
+  <sectiontype implements="ZServer.server"
+               name="taskqueue-server"
                datatype=".TaskQueueServerFactory"
-               implements="ZServer.server">
-    <key name="name" datatype="string" default="default">
+  >
+    <key default="default"
+         name="name"
+         datatype="string"
+    >
       <description>
         Consumer name, preferably instance name. Consumer name can be
         used by queues when reserving messages from broker for processing.
       </description>
     </key>
-    <key name="queue" datatype="string" default="default">
+    <key default="default"
+         name="queue"
+         datatype="string"
+    >
       <description>
         Queue name for this consumer (consuming server). There must exist a
         registered utility providing ITaskQueue with this name.
       </description>
     </key>
-    <key name="concurrent_limit" datatype="integer" default="1">
+    <key default="1"
+         name="concurrent_limit"
+         datatype="integer"
+    >
       <description>
         Maximum concurrent task limit for this consumer. The limit should be
         less than zserver-thread or just 1.
       </description>
     </key>
-    <key name="retry_max_count" datatype="integer" default="10">
+    <key default="10"
+         name="retry_max_count"
+         datatype="integer"
+    >
       <description>
         Maximum ZPublisher retry count for requests dispatched by this
         consumer. Once the limit has been exceeded, the conflicting task may

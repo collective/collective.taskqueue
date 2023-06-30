@@ -4,3 +4,6 @@
 [meta]
 template = "default"
 commit-id = "2ca7c313"
+
+[pyproject]
+codespell_skip = "*.po,*/**/txredisapi.py"

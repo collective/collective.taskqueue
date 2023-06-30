@@ -10,7 +10,7 @@ Changelog
 0.8.2 (2017-01-03)
 ------------------
 
-- Fix issue where got bool header value caused error on task creationg
+- Fix issue where got bool header value caused error on task creation
   [datakurre]
 
 0.8.1 (2017-01-02)

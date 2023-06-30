@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 from AccessControl.Permissions import add_user_folders
-from Acquisition import aq_base
 from collective.taskqueue.pasplugin import taskauthplugin
 from Products.CMFCore.interfaces import ISiteRoot
 from Products.CMFCore.utils import getToolByName
@@ -49,10 +47,10 @@ def configureTaskQueueAuthPlugin(context):
     try:
         for i in range(len(pas.plugins.listPluginIds(IExtractionPlugin))):
             pas.plugins.movePluginsUp(IExtractionPlugin, ("taskauth",))
-    except:
+    except Exception:
         pass
     try:
         for i in range(len(pas.plugins.listPluginIds(IAuthenticationPlugin))):
             pas.plugins.movePluginsUp(IAuthenticationPlugin, ("taskauth",))
-    except:
+    except Exception:
         pass

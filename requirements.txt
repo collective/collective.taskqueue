@@ -9,3 +9,11 @@ pywin32 ; platform_system == 'Windows'
 
 # SSL Certs on windows, because Python is missing them otherwise:
 certifi ; platform_system == 'Windows'
+
+# Plone Meta
+tox==4.6.3
+pygraphviz==1.11
+
+# Test dependencies, to be moved to package test dependencies
+plaster==1.1.2
+plaster-pastedeploy==1.0.1
