@@ -20,7 +20,8 @@
   languages.python.enable = true;
   languages.python.version = "3.11";
   languages.python.venv.enable = true;
-  languages.python.venv.requirements = builtins.readFile ./requirements.txt;
+  languages.python.venv.requirements = builtins.readFile 
+  ./requirements.txt;
 
   # https://devenv.sh/pre-commit-hooks/
   # pre-commit.hooks.shellcheck.enable = true;
@@ -30,6 +31,7 @@
 
   # See full reference at https://devenv.sh/reference/options/
   services.redis.enable = true;
+  services.mailhog.enable = true;
 
   devcontainer.enable = true;
 }

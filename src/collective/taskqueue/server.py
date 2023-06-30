@@ -156,6 +156,20 @@ class TaskQueueServer(Service):
     def dispatch(self, task):
         self.concurrent_limit += 1
 
+        # Decode encoded payload
+        def decode(obj):
+            if isinstance(obj, bytes):
+                return obj.decode("utf-8")
+            elif isinstance(obj, list):
+                return [decode(o) for o in obj]
+            return obj
+        task = {
+            decode(key): decode(value)
+            if key not in ["payload", b"payload"]
+            else value
+            for key, value in task.items()
+        }
+
         environ = make_environ(task)
 
         def request_factory(*args, **kwargs):
